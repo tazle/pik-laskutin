@@ -71,11 +71,14 @@ class InvoicingChargeFilter(object):
 class HourlyPriceRule(object):
     def __init__(self, price, filters=[], template="Lento, %(aircraft)s, %(duration)d min"):
         """
-        @param price Hourly price, in euros
+        @param price Hourly price, in euros, or pricing function that takes Flight event as parameter and returns price
         @param filters Input filters (such as per-aircraft)
         @param template Description tmeplate. Filled using string formatting with the event object's __dict__ context
         """
-        self.price = price
+        if isinstance(price, numbers.Number):
+            self.pricing = lambda event: event.duration * (price / 60.0)
+        else:
+            self.pricing = price
         self.filters = filters
         self.template = template
 
@@ -83,7 +86,7 @@ class HourlyPriceRule(object):
         if isinstance(event, Flight):
             if all(f(event) for f in self.filters):
                 line = self.template %event.__dict__
-                price = event.duration * (self.price / 60.0)
+                price = self.pricing(event)
                 return [InvoiceLine(event.account_id, event.date, line, price, self, event)]
             
         return []
