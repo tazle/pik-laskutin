@@ -100,6 +100,9 @@ def events_to_lines(flights):
 all_lines = []
 by_account = defaultdict(lambda: [])
 for line in events_to_lines(events):
+    k = line.account_id.lower()
+    if "mik" in k or "flk" in k or "pik" in k:
+        continue
     by_account[line.account_id].append(line)
     all_lines.append(line)
 
