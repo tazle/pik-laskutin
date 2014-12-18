@@ -9,6 +9,7 @@ from pik.flights import Flight
 from pik.billing import InvoiceLine
 import datetime as dt
 import re
+import numbers
 
 class SimpleRule(object):
     def __init__(self, filters=[]):
@@ -55,6 +56,17 @@ class AircraftFilter(object):
 
     def __call__(self, event):
         return event.aircraft in self.aircraft
+
+class PurposeFilter(object):
+    def __init__(self, *purposes):
+        self.purposes = purposes
+
+    def __call__(self, event):
+        return event.purpose in self.purposes
+
+class InvoicingChargeFilter(object):
+    def __call__(self, event):
+        return bool(event.invoicing_comment)
 
 class HourlyPriceRule(object):
     def __init__(self, price, filters=[], template="Lento, %(aircraft)s, %(duration)d min"):
