@@ -13,3 +13,5 @@
     - korjaukset tehtävä tällä erää lisätapahtumilla tai tapahtumistoa muokkaamalla
       - turvallista, koska kaikki laskutussäännöt ovat jäsenkohtaisia
     - tulevaisuudessa on voitava tehdä korjauksia laajemminkin?
+# Siirtohinausbitti lennon tietoihin
+  - Tarvitaan, jotta erotellaan Suhinu
