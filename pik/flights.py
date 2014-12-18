@@ -1,6 +1,8 @@
 # -*- coding: utf-8
 import datetime as dt
 
+ALLOWED_PURPOSES = set(["GEO", "HAR", "HIN", "KOE", "KOU", "LAN", "LAS", "LVL", "MAT", "PALO", "RAH", "SAI", "SAR", "SII", "TAI", "TAR", "TIL", "VLL", "VOI", "YLE", "MUU"])
+
 class Flight(object):
     def __init__(self, aircraft, date, account_id, captain_name, student_name, n_on_board, takeoff_location, landing_location, takeoff_time, landing_time, n_landings, purpose, duration, invoicing_comment):
         self.aircraft = aircraft
@@ -14,7 +16,9 @@ class Flight(object):
         self.takeoff_time = takeoff_time
         self.landing_time = landing_time
         self.n_landings = n_landings
-        self.purpose = purpose
+        self.purpose = purpose.upper()
+        if self.purpose not in ALLOWED_PURPOSES:
+            raise ValueError("Invalid prpose of flights: %s, allowed values are: %s" %(purpose, ALLOWED_PURPOSES))
         self.duration = duration # in minutes
         self.invoicing_comment = invoicing_comment
         self.deleted = False
