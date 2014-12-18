@@ -107,6 +107,6 @@ for account in sorted(by_account.keys()):
     lines = by_account[account]
     print account, sum(l.price for l in lines)
     for l in lines:
-        print u"  " + l.item
+        print u"  " + l.item, "%.2f" %l.price
 
 print sum(l.price for l in all_lines)
