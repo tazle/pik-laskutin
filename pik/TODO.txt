@@ -1,5 +1,15 @@
-# 3. payments
-# NDA-tiedosto -> SimpleEvent
-#
-# 
-
+# Alkusaldot
+  - Laskelma, pohjana 2013 laskutus-excel
+    - selvitettävä, mikä on vika pankkitapahtuma siellä
+  - Ja korjaustapahtumat!
+# Laskutusäännöt
+  - vielä jotain?
+# Määrämuotoisia yksittäistapahtumia laskuihin
+  - TODO-listasta kirjoitettava plop.csv:n kaltaista esitystä
+# Laskujen PIK-viitteiden tarkistus viitelistaa vasten
+  - lopuksi
+# Laskutuksen jatkuvuus?
+  - Tällä erää riittää pystyä tuottamaan yksi laskutuskierros, ja yksittäisten jäsenten kohdalle korjauksia siihen
+    - korjaukset tehtävä tällä erää lisätapahtumilla tai tapahtumistoa muokkaamalla
+      - turvallista, koska kaikki laskutussäännöt ovat jäsenkohtaisia
+    - tulevaisuudessa on voitava tehdä korjauksia laajemminkin?
