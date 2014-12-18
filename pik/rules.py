@@ -68,7 +68,7 @@ class InvoicingChargeFilter(object):
     def __call__(self, event):
         return bool(event.invoicing_comment)
 
-class HourlyPriceRule(object):
+class FlightRule(object):
     def __init__(self, price, filters=[], template="Lento, %(aircraft)s, %(duration)d min"):
         """
         @param price Hourly price, in euros, or pricing function that takes Flight event as parameter and returns price
