@@ -1,7 +1,7 @@
 # -*- coding: utf-8
 import datetime as dt
 
-ALLOWED_PURPOSES = set(["GEO", "HAR", "HIN", "KOE", "KOU", "LAN", "LAS", "LVL", "MAT", "PALO", "RAH", "SAI", "SAR", "SII", "TAI", "TAR", "TIL", "VLL", "VOI", "YLE", "MUU", "KIL"])
+ALLOWED_PURPOSES = set(["GEO", "HAR", "HIN", "KOE", "KOU", "LAN", "LAS", "LVL", "MAT", "PALO", "RAH", "SAI", "SAR", "SII", "TAI", "TAR", "TIL", "VLL", "VOI", "YLE", "MUU", "KIL", "TYY"])
 
 class Flight(object):
     def __init__(self, aircraft, date, account_id, captain_name, student_name, n_on_board, takeoff_location, landing_location, takeoff_time, landing_time, n_landings, purpose, duration, invoicing_comment, extra_comments="", transfer_tow=False):
