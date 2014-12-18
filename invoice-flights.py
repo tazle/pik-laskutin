@@ -18,13 +18,14 @@ if len(sys.argv) < 2:
 conf = json.load(open(sys.argv[1], 'rb'))
 
 sources = []
-for fname in conf['flight_files']:
-    reader = csv.reader(open(fname, "rb"))
-    sources.append(Flight.generate_from_csv(reader))
 
 for fname in conf['event_files']:
     reader = csv.reader(open(fname, 'rb'))
     sources.append(SimpleEvent.generate_from_csv(reader))
+
+for fname in conf['flight_files']:
+    reader = csv.reader(open(fname, "rb"))
+    sources.append(Flight.generate_from_csv(reader))
 
 for fname in conf['nda_files']:
     reader = nda.transactions(open(fname, 'rb'))
