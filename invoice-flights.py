@@ -10,12 +10,27 @@ import csv
 import sys
 from collections import defaultdict
 from itertools import chain
+import json
+
+if len(sys.argv) < 2:
+    print "Usage: invoice-flights.py <conf-file>"
+    sys.exit(1)
+conf = json.load(open(sys.argv[1], 'rb'))
 
 sources = []
-sources.append(SimpleEvent.generate_from_csv(csv.reader(sys.stdin)))
-for fname in sys.argv[1:]:
+for fname in conf['flight_files']:
     reader = csv.reader(open(fname, "rb"))
     sources.append(Flight.generate_from_csv(reader))
+
+for fname in conf['event_files']:
+    reader = csv.reader(open(fname, 'rb'))
+    sources.append(SimpleEvent.generate_from_csv(reader))
+
+for fname in conf['nda_files']:
+    reader = nda.transactions(open(fname, 'rb'))
+    # Only PIK references and incomin transactions - note that the conversion reverses the sign of the sum, since incoming money reduces the account's debt
+    sources.append(SimpleEvent.generate_from_nda(reader, ["FI2413093000112458"], lambda event: event.cents > 0 and event.ref and (len(event.ref) == 4 or len(event.ref) == 6)))
+
 
 ctx = BillingContext()
 

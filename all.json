@@ -1,0 +1,5 @@
+{
+    "nda_files" : ["2014/2014-1-to-11.nda"],
+    "event_files" : ["2014/erilliset.csv"],
+    "flight_files" : ["2014/650.csv", "2014/733.csv","2014/787.csv","2014/883.csv","2014/952.csv","2014/CAO-until-2014-10-29.csv","2014/DDS-until-2014-12-04.csv"]
+}
