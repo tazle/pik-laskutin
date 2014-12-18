@@ -64,6 +64,10 @@ class PurposeFilter(object):
     def __call__(self, event):
         return event.purpose in self.purposes
 
+class TransferTowFilter(object):
+    def __call__(self, event):
+        return bool(event.transfer_tow)
+
 class InvoicingChargeFilter(object):
     def __call__(self, event):
         return bool(event.invoicing_comment)
