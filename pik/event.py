@@ -26,3 +26,18 @@ class SimpleEvent(object):
             date = dt.date(*map(int, row[0].split("-")))
             amount = float(row[3])
             yield SimpleEvent(date, row[1], row[2], amount)
+
+    @staticmethod
+    def generate_from_nda(transactions, account_numbers=[], event_filter=lambda x: True, msg_template="Lentotilimaksu, %(ref)s"):
+        """
+        Import incoming payments from NDA file
+
+        @param transactions pik.nda.Transaction objects
+        @param account_numbers IBAN account numbers that should be imported. Only transactions whose IBAN is in this collections will be imported.
+        @param event_filter Custom filter function. Only transactions that pass this filter will be imported.
+        @param msg_template Message template. Template context is the dict of the transaction object.
+        """
+        for txn in transactions:
+            if txn.iban in account_numbers:
+                if event_filter(txn):
+                    yield SimpleEvent(txn.date, txn.ref, msg_template %txn.__dict__, -txn.cents/100.0)
