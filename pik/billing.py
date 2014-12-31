@@ -7,6 +7,9 @@ class Invoice(object):
         self.date = date
         self.lines = lines
 
+    def total(self):
+        return sum(l.price for l in self.lines)
+
 class InvoiceLine(object):
     def __init__(self, account_id, date, item, price, rule, event):
         self.account_id = account_id # Account for which this line was generated

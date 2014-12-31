@@ -115,12 +115,16 @@ for line in events_to_lines(events):
     by_account[line.account_id].append(line)
     all_lines.append(line)
 
+valid_invoices = []
 for account in sorted(by_account.keys()):
     lines = sorted(by_account[account], key=lambda line: line.date)
     invoice = Invoice(account, dt.date.today(), lines)
-    if account in conf["valid_accounts"]:
+    if account in conf["valid_accounts"] and invoice.total() > 0.01 or invoice.total() < 0.01:
         with open(os.path.join(conf["out_dir"], account + ".txt"), "wb") as f:
+            valid_invoices.append(invoice)
             f.write(format_invoice(invoice, conf["description"]).encode("utf-8"))
     # Process invalid account numbers later
 
-print sum(l.price for l in all_lines)
+for i in valid_invoices:
+    print i.account_id, i.total()
+print sum(i.total() for i in valid_invoices)
