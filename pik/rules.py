@@ -64,6 +64,13 @@ class PurposeFilter(object):
     def __call__(self, event):
         return event.purpose in self.purposes
 
+class NegationFilter(object):
+    def __init__(self, filter):
+        self.filter = filter
+
+    def __call__(self, event):
+        return not self.filter(event)
+
 class TransferTowFilter(object):
     def __call__(self, event):
         return bool(event.transfer_tow)
