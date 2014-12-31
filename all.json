@@ -1,6 +1,6 @@
 {
     "nda_files" : ["2014/2014-1-to-11.nda"],
-    "event_files" : ["2014/erilliset.csv"],
+    "event_files" : ["2014/erilliset.csv", "2014/loppusaldot-2013.csv"],
     "flight_files" : ["2014/650.csv", "2014/733.csv","2014/787.csv","2014/883.csv","2014/952.csv","2014/CAO-until-2014-10-29.csv","2014/DDS-until-2014-12-04.csv", "2014/TOW-until-2014-10-30.csv"],
     "no_invoicing_prefix" : ["PIK", "MIK", "FLK", "RS", "EFNU"]
 }
