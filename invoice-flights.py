@@ -1,8 +1,8 @@
 # -*- coding: utf-8
 from pik.flights import Flight
 from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter
-from pik.util import Period
-from pik.billing import BillingContext
+from pik.util import Period, format_invoice
+from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
 from pik import nda
 import datetime as dt
@@ -114,9 +114,8 @@ for line in events_to_lines(events):
     all_lines.append(line)
 
 for account in sorted(by_account.keys()):
-    lines = by_account[account]
-    print account, sum(l.price for l in lines)
-    for l in lines:
-        print u"  " + l.item, "%.2f" %l.price
+    lines = sorted(by_account[account], key=lambda line: line.date)
+    invoice = Invoice(account, dt.date.today(), lines)
+    print format_invoice(invoice, conf["description"])
 
 print sum(l.price for l in all_lines)
