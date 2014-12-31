@@ -31,17 +31,22 @@ def format_invoice(invoice, additional_details=None):
     total_price = sum(l.price for l in invoice.lines)
 
     ret = \
-    u"PIK ry jäsenlaskutus\n" + spacer + "\n" + \
-    u"Laskun päivämäärä: " + invoice.date.strftime(dateformat) + "\n\n" + \
-    u"Saaja: Polyteknikkojen Ilmailukerho ry\n" + \
-    u"Saajan tilinumero: FI24 1309 3000 1124 58 (Nordea)\n\n" + \
-    u"Viitenumero (PIK-viite): " + invoice.account_id + "\n" + \
-    u"Laskun eräpäivä: " + (invoice.date + due_in).strftime(dateformat) + "\n\n" + \
-    u"Maksettavaa: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
+          u"PIK ry jäsenlaskutus, viite %s\n" % invoice.account_id + spacer + "\n"
+
+    if total_price > 0:
+        ret += u"Laskun päivämäärä: " + invoice.date.strftime(dateformat) + "\n\n" + \
+              u"Saaja: Polyteknikkojen Ilmailukerho ry\n" + \
+              u"Saajan tilinumero: FI24 1309 3000 1124 58 (Nordea)\n\n" + \
+              u"Viitenumero (PIK-viite): " + invoice.account_id + "\n" + \
+              u"Laskun eräpäivä: " + (invoice.date + due_in).strftime(dateformat) + "\n\n" + \
+              u"Maksettavaa: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
+    else:
+        ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n" + \
+               u"Ei maksettavaa kerholle." + "\n" + spacer + "\n\n"
 
     ret += additional_details + "\n\n"
 
-    ret += u"Laskun erittely: \n\n"
+    ret += u"Tapahtumien erittely: \n\n"
 
     for line in sorted(invoice.lines, key=lambda line: line.date):
         if line.price == 0:
@@ -49,7 +54,7 @@ def format_invoice(invoice, additional_details=None):
         ret += "%s %s:  %.2f" % (line.date.strftime(dateformat), line.item, line.price) +"\n"
     ret += "\n"
 
-    ret += u"Lasku sisältää myös seuraavat tapahtumat (à 0 EUR):\n\n"
+    ret += u"Myös seuraavat tapahtumat (à 0 EUR) on huomioitu:\n\n"
 
     for line in sorted(invoice.lines, key=lambda line: line.date):
         if not line.price == 0:
