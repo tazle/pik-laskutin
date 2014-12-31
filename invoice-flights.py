@@ -82,6 +82,8 @@ rules = [
                                      FlightRule(10, [PeriodFilter(Period.full_year(2014)),
                                                           AircraftFilter("DDS", "CAO", "TOW")],
                                                      u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
+
+    # Normal simple events
     FirstRule([SetDateRule(u"pursikönttä", ctx, SimpleRule([ItemFilter(u".*[pP]ursikönttä.*")])),
                SetDateRule(u"kurssikönttä", ctx, SimpleRule([ItemFilter(u".*[kK]urssikönttä.*")])),
                SimpleRule()]),
