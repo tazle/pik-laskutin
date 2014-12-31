@@ -11,6 +11,7 @@ import sys
 from collections import defaultdict
 from itertools import chain
 import json
+import os
 
 if len(sys.argv) < 2:
     print "Usage: invoice-flights.py <conf-file>"
@@ -117,6 +118,9 @@ for line in events_to_lines(events):
 for account in sorted(by_account.keys()):
     lines = sorted(by_account[account], key=lambda line: line.date)
     invoice = Invoice(account, dt.date.today(), lines)
-    print format_invoice(invoice, conf["description"])
+    if account in conf["valid_accounts"]:
+        with open(os.path.join(conf["out_dir"], account + ".txt"), "wb") as f:
+            f.write(format_invoice(invoice, conf["description"]).encode("utf-8"))
+    # Process invalid account numbers later
 
 print sum(l.price for l in all_lines)
