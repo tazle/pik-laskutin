@@ -34,26 +34,31 @@ class Flight(object):
         # string,ISO8601, string, string, string, int, string, string, hh:mmZ?, hh:mmZ?, hh:mm, string(3), int, string, string, 1/0
         #
         # The last two fields are optionsl
-        
+        maybe_header = True
         for row in rows:
             row = [x.decode("utf-8") for x in row]
+            if maybe_header:
+                maybe_header = False
+                try:
+                    int(row[13])
+                except ValueError:
+                    continue # header row
             try:
-                int(row[13])
-            except ValueError:
-                continue # header row
-            date = dt.date(*map(int, row[1].split("-")))
-            person_count = int(row[5])
-            n_landings = int(row[11])
-            duration = int(row[13])
-            if _flight_has_different_tz(row[6:7]):
-                raise Exception("Flight to weird timezone, times?")
+                date = dt.date(*map(int, row[1].split("-")))
+                person_count = int(row[5])
+                n_landings = int(row[11])
+                duration = int(row[13])
+                if _flight_has_different_tz(row[6:7]):
+                    raise Exception("Flight to weird timezone, times?")
 
-            if len(row) <= 16:
-                yield Flight(row[0], date, row[2], row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14])
-            elif len(row) >= 17:
-                yield Flight(row[0], date, row[2], row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14], row[15], bool(row[16]))
-            else:
-                raise ValueError(row)
+                if len(row) <= 16:
+                    yield Flight(row[0], date, row[2], row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14])
+                elif len(row) >= 17:
+                    yield Flight(row[0], date, row[2], row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14], row[15], bool(row[16]))
+                else:
+                    raise ValueError(row)
+            except Exception, e:
+                raise ValueError("Unable to parse line %s" %row, e)
 
 def _flight_has_different_tz(locations):
     same_tz = ["ef", "ee"]
