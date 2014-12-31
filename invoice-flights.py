@@ -95,9 +95,13 @@ rules = [
 events = chain(*sources)
 def events_to_lines(flights):
     for flight in flights:
+        match = False
         for rule in rules:
             for line in rule.invoice(flight):
+                match = True
                 yield line
+        if not match:
+            print >> sys.stderr, flight.__repr__()
 
 
 all_lines = []
