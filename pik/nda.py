@@ -78,7 +78,7 @@ T10188000001130506258883E248871305061305061305062730Palvelumaksu                
     @property
     def date(self):
         datestr = self.str[1+2+3+6+18:1+2+3+6+18+6]
-        return dt.datetime.strptime(datestr, "%y%m%d")
+        return dt.datetime.strptime(datestr, "%y%m%d").date()
 
     @property
     def name(self):
