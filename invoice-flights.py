@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 from pik.flights import Flight
-from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter
+from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter
 from pik.util import Period, format_invoice
 from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
@@ -80,7 +80,8 @@ rules = [
                                                      u"Kalustomaksu, %(aircraft)s, %(duration)d min")),
                           CappedRule(u"kalustomaksu_moottori", 70, ctx,
                                      FlightRule(10, [PeriodFilter(Period.full_year(2014)),
-                                                          AircraftFilter("DDS", "CAO", "TOW")],
+                                                     AircraftFilter("DDS", "CAO", "TOW"),
+                                                     NegationFilter(TransferTowFilter())], # No kalustomaksu for transfer tows
                                                      u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
 
     # Normal simple events
@@ -92,7 +93,7 @@ rules = [
 ]
 
 
-events = chain(*sources)
+events = sorted(chain(*sources), key=lambda event: event.date)
 def events_to_lines(flights):
     for flight in flights:
         match = False
