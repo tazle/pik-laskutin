@@ -165,7 +165,7 @@ if __name__ == '__main__':
         selector = lambda x: True
     
     def euros(cents):
-        return str(cents/100) + "." + "%02d" %(cents%100)
+        return "%.2f" % (cents/100.0)
     
     o = csv.writer(sys.stdout)
     for txn in transactions(sys.stdin):
