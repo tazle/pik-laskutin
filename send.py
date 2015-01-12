@@ -3,6 +3,8 @@ import csv
 import sys
 import json
 import smtplib
+import os
+import time
 from email.mime.text import MIMEText
 
 def read_recipient_file(fname, recipient_id):
@@ -42,17 +44,42 @@ def main():
     if len(args) >= 2:
         conf = read_config(args[0])
         email_file = conf["email_file"]
-        
-        recipient_id = args[1]
-        title = conf["title"] % {"id":recipient_id}
-        body = sys.stdin.read()
-        
-        recipient_addr = read_recipient_file(email_file, recipient_id)
-        
-        if recipient_addr is not None:
-            msg = make_msg(conf["sender_address"], recipient_addr, title, body)
-            send(conf, recipient_addr, msg.as_string())
 
+        dir_name = args[1]
+        for fname in os.listdir(dir_name):
+            if fname.endswith(".txt"):
+                path = os.path.join(dir_name, fname)
+                recipient_id = fname.replace(".txt","")
+
+                title = conf["title"] % {"id":recipient_id}
+                body = open(path, "rb").read()
+        
+                recipient_addr = read_recipient_file(email_file, recipient_id)
+        
+                if recipient_addr:
+                    print >> sys.stderr, "Sending", recipient_id, recipient_addr
+                    msg = make_msg(conf["sender_address"], recipient_addr, title, body)
+                    while True:
+                        try:
+                            send(conf, recipient_addr, msg.as_string())
+                            print >> sys.stderr, "Sent", recipient_id, recipient_addr
+                            break # No need to retry
+                        except smtplib.SMTPRecipientsRefused, e:
+                            error_code = e.recipients.values()[0][0]
+                            if error_code == 501:
+                                print >> sys.stderr, "Invalid recipient, not retrying", recipient_addr, e
+                                break # Break retry loop
+                            elif error_code == 451:
+                                print >> sys.stderr, "Throttled, retrying later", recipient_addr, e
+                            else:
+                                print >> sys.stderr, "Unknown error, not retrying", recipient_addr, e
+                                break # Break retry loop
+                        except Exception, e:
+                            print >> sys.stderr, "Unknown exception type, not retrying", e
+                            break # Break retry loop
+                        time.sleep(60)
+                else:
+                    print >> sys.stderr, "No e-mail address for", recipient_id
     else:
         print "Usage: echo 'Email body' | send.py conf-file recipient-id"
     
