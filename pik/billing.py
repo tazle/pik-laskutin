@@ -76,4 +76,18 @@ class BillingContext(object):
 
     def set(self, account_id, variable_id, value):
         self.account_contexts[(account_id, variable_id)] = value
-        
+
+    def to_json(self):
+        result = collections.defaultdict(lambda: {})
+        for k, v in self.account_contexts.items():
+            account_id, variable_id = k
+            result[account_id][variable_id] = v
+        return result
+
+    @staticmethod
+    def from_json(self, json_dict):
+        result = BillingContext()
+        for account_id, account_vars in json_dict.items():
+            for var_name, value in account_vars:
+                result.set(account_id, var_name, value)
+        return result
