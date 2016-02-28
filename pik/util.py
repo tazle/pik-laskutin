@@ -19,6 +19,9 @@ class Period(object):
     def __contains__(self, date):
         return self.start <= date and date <= self.end
 
+def parse_iso8601_date(datestr):
+    return dt.date(*map(int, datestr.split('-')))
+
 def format_invoice(invoice, additional_details=None):
 
     dateformat = "%d.%m.%Y"
