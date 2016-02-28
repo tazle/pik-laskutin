@@ -1,5 +1,7 @@
 # -*- coding: utf-8
 import collections
+import datetime as dt
+from pik.util import parse_iso8601_date
 
 class Invoice(object):
     def __init__(self, account_id, date, lines):
@@ -9,6 +11,27 @@ class Invoice(object):
 
     def total(self):
         return sum(l.price for l in self.lines)
+
+    def to_json(self):
+        return {'account_id' : self.account_id,
+                'date' : self.date.isoformat(),
+                'lines' : [line.to_json() for line in self.lines]}
+
+    @staticmethod
+    def from_json(self, json_dict):
+        return Invoice(json_dict['account_id'],
+                       parse_iso8601_date(json_dict['date']),
+                       [InvoiceLine.from_json(line) for line in json_dict['lines']])
+
+    def to_csvrow(self):
+        """
+        Convert to CSV row that can be fed back to the system as SimpleEvents
+        to act as the basis for the next billing round.
+
+        SimpleEvent CSV format: Tapahtumapäivä,Maksajan viitenumero,Selite,Summa
+
+        """
+        return [self.date.isoformat(), self.account_id, "Lentotilin saldo " + self.date.isoformat(), self.total()]
 
 class InvoiceLine(object):
     def __init__(self, account_id, date, item, price, rule, event):
@@ -21,6 +44,25 @@ class InvoiceLine(object):
 
     def __str__(self):
         return "%s: %f <- %s" %(self.account_id, self.price, self.item)
+
+    def to_json(self):
+        return {'account_id' : self.account_id,
+                'date' : self.date.isoformat(),
+                'item' : self.item,
+                'price' : self.price}
+               # How to encode rules and events? Need dispatch to actual objects
+               # Also, rules are stateful
+               #'rule' : self.rule.to_json(),
+               #'event' : self.event.to_json()}
+
+    @staticmethod
+    def from_json(self, json_dict):
+        return InvoiceLine(json_dict['account_id'],
+                           parse_iso8601_date(json_dict['date']),
+                           json_dict['item'],
+                           json_dict['price'],
+                           None,
+                           None)
 
 class BillingContext(object):
     """
