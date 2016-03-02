@@ -64,7 +64,7 @@ class Flight(object):
                 raise ValueError("Unable to parse line %s" %row, e)
 
 def _flight_has_different_tz(locations):
-    same_tz = ["ef", "ee"]
+    same_tz = ["ef", "ee", "zz", "pirtti"]
     for _loc in locations:
         loc = _loc.lower()
         for acceptable_tz_prefix in same_tz:
