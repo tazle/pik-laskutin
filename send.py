@@ -56,8 +56,8 @@ def main():
         
                 recipient_addr = read_recipient_file(email_file, recipient_id)
         
+                print >> sys.stderr, "Sending", recipient_id, recipient_addr
                 if recipient_addr:
-                    print >> sys.stderr, "Sending", recipient_id, recipient_addr
                     msg = make_msg(conf["sender_address"], recipient_addr, title, body)
                     while True:
                         try:
@@ -67,21 +67,21 @@ def main():
                         except smtplib.SMTPRecipientsRefused, e:
                             error_code = e.recipients.values()[0][0]
                             if error_code == 501:
-                                print >> sys.stderr, "Invalid recipient, not retrying", recipient_addr, e
+                                print >> sys.stderr, "Invalid recipient, not retrying", recipient_id, recipient_addr, e
                                 break # Break retry loop
                             elif error_code == 451:
-                                print >> sys.stderr, "Throttled, retrying later", recipient_addr, e
+                                print >> sys.stderr, "Throttled, retrying later", recipient_id, recipient_addr, e
                             else:
-                                print >> sys.stderr, "Unknown error, not retrying", recipient_addr, e
+                                print >> sys.stderr, "Unknown error, not retrying", recipient_id, recipient_addr, e
                                 break # Break retry loop
                         except Exception, e:
-                            print >> sys.stderr, "Unknown exception type, not retrying", e
+                            print >> sys.stderr, "Unknown exception type, not retrying", recipient_id, recipient_addr, e
                             break # Break retry loop
                         time.sleep(60)
                 else:
                     print >> sys.stderr, "No e-mail address for", recipient_id
     else:
-        print "Usage: echo 'Email body' | send.py conf-file recipient-id"
+        print "Usage: send.py conf-file recipient-id"
     
 
 if __name__ == '__main__':
