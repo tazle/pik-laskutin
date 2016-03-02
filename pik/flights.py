@@ -25,6 +25,9 @@ class Flight(object):
         self.transfer_tow = transfer_tow
         self.deleted = False
 
+    def __unicode__(self):
+        return "Flight(" + ", ".join([self.date.isoformat(), self.aircraft, self.account_id]) + ")"
+
     @staticmethod
     def generate_from_csv(rows):
         # CSV format
