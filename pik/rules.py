@@ -11,6 +11,18 @@ import datetime as dt
 import re
 import numbers
 
+class DebugRule(object):
+    def __init__(self, inner_rule, debug_filter=lambda event: True, debug_func=lambda ev, result: True):
+        self.inner_rule = inner_rule
+        self.debug_filter = debug_filter
+        self.debug_func = debug_func
+
+    def invoice(self, event):
+        do_debug = self.debug_filter(event)
+        result = self.inner_rule.invoice(event)
+        self.debug_func(event, result)
+        return result
+
 class SimpleRule(object):
     def __init__(self, filters=[]):
         self.filters = filters
