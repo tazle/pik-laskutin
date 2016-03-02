@@ -36,7 +36,7 @@ class Flight(object):
         # DDS,2014-03-31,115128,Lehti,Khurshid O.,2,efhf,efhf,13:28,14:34,1:05,5,kou,65,ei viitettä,,
         # string,ISO8601, string, string, string, int, string, string, hh:mmZ?, hh:mmZ?, hh:mm, string(3), int, string, string, 1/0
         #
-        # The last two fields are optionsl
+        # The last two fields are optional
         maybe_header = True
         for row in rows:
             row = [x.decode("utf-8") for x in row]
