@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 from pik.flights import Flight
-from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter
+from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter
 from pik.util import Period, format_invoice, parse_iso8601_date
 from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
