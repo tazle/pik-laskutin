@@ -10,17 +10,19 @@ from pik.billing import InvoiceLine
 import datetime as dt
 import re
 import numbers
+import sys
 
 class DebugRule(object):
-    def __init__(self, inner_rule, debug_filter=lambda event: True, debug_func=lambda ev, result: True):
+    def __init__(self, inner_rule, debug_filter=lambda event, result: bool(result), debug_func=lambda ev, result: sys.stdout.write(unicode(ev) + " " + unicode(result) + "\n")):
         self.inner_rule = inner_rule
         self.debug_filter = debug_filter
         self.debug_func = debug_func
 
     def invoice(self, event):
-        do_debug = self.debug_filter(event)
         result = self.inner_rule.invoice(event)
-        self.debug_func(event, result)
+        do_debug = self.debug_filter(event, result)
+        if do_debug:
+            self.debug_func(event, result)
         return result
 
 class SimpleRule(object):
