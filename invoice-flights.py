@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
     machine_readable_invoices = [invoice.to_json() for invoice in invoices]
 
-    print json.dumps(machine_readable_invoices)
+    #print json.dumps(machine_readable_invoices)
 
     invalid_account = []
     invalid_sum = []
