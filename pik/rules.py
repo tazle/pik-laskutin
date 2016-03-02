@@ -48,7 +48,9 @@ class SinceDateFilter(object):
             return limit <= event.date
         except Exception:
             return False
-                
+
+flightFilter = lambda ev: isinstance(ev, Flight)
+eventFilter = lambda ev: isinstance(ev, SimpleEvent)
 
 class ItemFilter(object):
     def __init__(self, regex):
