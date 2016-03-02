@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
         reader = nda.transactions(open(fname, 'rb'))
         # Only PIK references and incoming transactions - note that the conversion reverses the sign of the sum, since incoming money reduces the account's debt
-        sources.append(SimpleEvent.generate_from_nda(reader, ["FI2413093000112458"], lambda event: event.cents > 0 and event.ref and (len(event.ref) == 4 or len(event.ref) == 6)))
+        sources.append(SimpleEvent.generate_from_nda(reader, ["FI2413093000112458"], lambda event: bank_txn_date_filter(event) and event.cents > 0 and event.ref and (len(event.ref) == 4 or len(event.ref) == 6)))
 
     invoice_date = parse_iso8601_date(conf['invoice_date'])
     events = sorted(chain(*sources), key=lambda event: event.date)
