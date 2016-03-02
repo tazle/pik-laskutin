@@ -18,7 +18,7 @@ class Invoice(object):
                 'lines' : [line.to_json() for line in self.lines]}
 
     @staticmethod
-    def from_json(self, json_dict):
+    def from_json(json_dict):
         return Invoice(json_dict['account_id'],
                        parse_iso8601_date(json_dict['date']),
                        [InvoiceLine.from_json(line) for line in json_dict['lines']])
@@ -56,7 +56,7 @@ class InvoiceLine(object):
                #'event' : self.event.to_json()}
 
     @staticmethod
-    def from_json(self, json_dict):
+    def from_json(json_dict):
         return InvoiceLine(json_dict['account_id'],
                            parse_iso8601_date(json_dict['date']),
                            json_dict['item'],
@@ -85,7 +85,7 @@ class BillingContext(object):
         return result
 
     @staticmethod
-    def from_json(self, json_dict):
+    def from_json(json_dict):
         result = BillingContext()
         for account_id, account_vars in json_dict.items():
             for var_name, value in account_vars:
