@@ -18,7 +18,10 @@ class Period(object):
         return self.start <= date and date <= self.end
 
 def parse_iso8601_date(datestr):
-    return dt.date(*map(int, datestr.split('-')))
+    try:
+        return dt.date(*map(int, datestr.split('-')))
+    except ValueError, e:
+        raise ValueError("Could not parse date %s" %datestr, e)
 
 def format_invoice(invoice, additional_details=None):
 
