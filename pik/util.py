@@ -1,7 +1,5 @@
 # -*- coding: utf-8
 import datetime as dt
-import billing
-
 
 class Period(object):
     def __init__(self, start, end):
