@@ -23,30 +23,28 @@ def parse_iso8601_date(datestr):
     except ValueError, e:
         raise ValueError("Could not parse date %s" %datestr, e)
 
-def format_invoice(invoice, additional_details=None):
+def format_invoice(invoice, additional_details=""):
 
     dateformat = "%d.%m.%Y"
     spacer = "---------------------------"
     due_in = dt.timedelta(14)
 
-    if not additional_details:
-        additional_details = "Laskussa on huomioitu lennot ja tilitapahtumat 2014 loppuun saakka."
-
     total_price = sum(l.price for l in invoice.lines)
 
     ret = \
-          u"PIK ry jäsenlaskutus, viite %s\n" % invoice.account_id + spacer + "\n"
+          u"PIK ry jäsenlaskutus, viite %s\n" % invoice.account_id + spacer + "\n\n"
+
+    ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
 
     if total_price > 0:
         ret += u"Laskun päivämäärä: " + invoice.date.strftime(dateformat) + "\n\n" + \
-              u"Saaja: Polyteknikkojen Ilmailukerho ry\n" + \
-              u"Saajan tilinumero: FI24 1309 3000 1124 58 (Nordea)\n\n" + \
-              u"Viitenumero (PIK-viite): " + invoice.account_id + "\n" + \
-              u"Laskun eräpäivä: " + (invoice.date + due_in).strftime(dateformat) + "\n\n" + \
-              u"Maksettavaa: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
+               u"Saaja: Polyteknikkojen Ilmailukerho ry\n" + \
+               u"Saajan tilinumero: FI24 1309 3000 1124 58 (Nordea)\n\n" + \
+               u"Viitenumero (PIK-viite): " + invoice.account_id + "\n" + \
+               u"Laskun eräpäivä: " + (invoice.date + due_in).strftime(dateformat) + "\n\n" + \
+               u"Maksettavaa: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
     else:
-        ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n" + \
-               u"Ei maksettavaa kerholle." + "\n" + spacer + "\n\n"
+        ret += u"Ei maksettavaa kerholle, ennakkomaksuja kerholla %.2f EUR." %(-total_price) + "\n" + spacer + "\n\n"
 
     ret += additional_details + "\n\n"
 
