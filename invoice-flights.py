@@ -183,13 +183,8 @@ def write_total_csv(invoices, fname):
     writer = csv.writer(open(fname, 'wb'))
     writer.writerows(invoice.to_csvrow() for invoice in invoices)
 
-def is_invoice_small_sum(invoice):
-    return abs(invoice.total()) <= 0.01
-
-def make_account_validator(valid_accounts):
-    def is_invoice_account_valid(invoice):
-        return invoice.account_id in valid_accounts
-    return is_invoice_account_valid
+def is_invoice_zero(invoice):
+    return abs(invoice.total()) < 0.01
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -233,16 +228,12 @@ if __name__ == '__main__':
     if "context_file_out" in conf:
         json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
 
-    is_account_valid = make_account_validator(conf["valid_accounts"])
-
-    def is_valid_invoice(invoice):
-        return not is_invoice_small_sum(invoice) and is_account_valid(invoice)
-
-    valid_invoices = [i for i in invoices if is_valid_invoice(i)]
-    invalid_invoices = [i for i in invoices if not is_valid_invoice(i)]
+    valid_invoices = [i for i in invoices if not is_invoice_zero(i)]
+    invalid_invoices = [i for i in invoices if is_invoice_zero(i)]
 
     write_invoices_to_files(valid_invoices, conf)
-    write_total_csv(valid_invoices, total_csv_fname)
+    write_invoices_to_files(invalid_invoices, conf)
+    write_total_csv(invoices, total_csv_fname)
 
     machine_readable_invoices = [invoice.to_json() for invoice in invoices]
 
@@ -250,25 +241,10 @@ if __name__ == '__main__':
 
     invalid_account = []
     invalid_sum = []
-    for invoice in invalid_invoices:
-        if not is_account_valid(invoice):
-            invalid_account.append(invoice)
-            print >> sys.stderr, "Invalid account:", invoice.account_id
-        elif is_invoice_small_sum(invoice):
-            if invoice.total() != 0:
-                invalid_sum.append(invoice)
-                print >> sys.stderr, "Invoice with small sum for", invoice.account_id
-            else:
-                print >> sys.stderr, "Invoice with zero sum for", invoice.account_id
-        else:
-            print >> sys.stderr, "Otherwise invalid invoice for account:", invoice.account_id
 
     print >> sys.stderr, "Difference, valid invoices, total", sum(i.total() for i in valid_invoices)
-    print >> sys.stderr, "Owed to club, valid invoices, total", sum(i.total() for i in valid_invoices if i.total() > 0)
+    print >> sys.stderr, "Owed to club, invoices, total", sum(i.total() for i in valid_invoices if i.total() > 0)
+    print >> sys.stderr, "Owed by club, invoices, total", sum(i.total() for i in valid_invoices if i.total() < 0)
 
-    print >> sys.stderr, "Owed by invalid accounts, total ", sum(i.total() for i in invalid_account if i.total() > 0)
-    print >> sys.stderr, "Owed to invalid accounts, total", sum(i.total() for i in invalid_account if i.total() < 0)
-
-    print >> sys.stderr, "Owed to club in invoices with invalid sum", sum(i.total() for i in invalid_sum if i.total() > 0)
-    print >> sys.stderr, "Owed by club in invoices with invalid sum", sum(i.total() for i in invalid_sum if i.total() < 0)
+    print >> sys.stderr, "Zero invoices, count ", len(invalid_invoices)
 
