@@ -98,8 +98,8 @@ def make_rules(ctx=BillingContext()):
                                                          u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
 
         # Normal simple events
-        FirstRule([SetDateRule(ID_PK_2014, ctx, SimpleRule([ItemFilter(u".*[pP]ursikönttä.*")])),
-                   SetDateRule(ID_KK_2014, ctx, SimpleRule([ItemFilter(u".*[kK]urssikönttä.*")])),
+        FirstRule([SetDateRule(ID_PK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[pP]ursikönttä.*")])),
+                   SetDateRule(ID_KK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[kK]urssikönttä.*")])),
                    SimpleRule(F_2014)]),
 
         FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s"),
@@ -131,8 +131,8 @@ def make_rules(ctx=BillingContext()):
                                                          u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
 
         # Normal simple events
-        FirstRule([SetDateRule(u"pursikönttä_2015", ctx, SimpleRule([ItemFilter(u".*[pP]ursikönttä.*")])),
-                   SetDateRule(u"kurssikönttä_2015", ctx, SimpleRule([ItemFilter(u".*[kK]urssikönttä.*")])),
+        FirstRule([SetDateRule(u"pursikönttä_2015", ctx, SimpleRule(F_2015 + [ItemFilter(u".*[pP]ursikönttä.*")])),
+                   SetDateRule(u"kurssikönttä_2015", ctx, SimpleRule(F_2015 + [ItemFilter(u".*[kK]urssikönttä.*")])),
                    SimpleRule(F_2015)]),
 
         FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
