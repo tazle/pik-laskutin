@@ -62,6 +62,11 @@ def make_rules(ctx=BillingContext()):
                           FlightRule(kurssi_price, base_filters + F_KURSSIK, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
                           FlightRule(price, base_filters)])
 
+    def pursi_rule_2015(base_filters, price, kurssi_price = 0, package_price = 0):
+        return FirstRule([FlightRule(package_price, base_filters + F_PURSIK_2015, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
+                          FlightRule(kurssi_price, base_filters + F_KURSSIK_2015, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
+                          FlightRule(price, base_filters)])
+
 
     rules_past = [
         # Normal simple events from the past are OK
@@ -112,12 +117,12 @@ def make_rules(ctx=BillingContext()):
                    FlightRule(104, F_TOW + F_2015)
                ]),
 
-        pursi_rule(F_2015 + F_FK, 15),
-        pursi_rule(F_2015 + F_FM, 25, 10),
-        pursi_rule(F_2015 + F_FQ, 25),
-        pursi_rule(F_2015 + F_FY, 32, 32, 10),
-        pursi_rule(F_2015 + F_DG, 40, 10, 10),
-        pursi_rule(F_2015 + F_TK, 25, 10, 0),
+        pursi_rule_2015(F_2015 + F_FK, 15),
+        pursi_rule_2015(F_2015 + F_FM, 25, 10),
+        pursi_rule_2015(F_2015 + F_FQ, 25),
+        pursi_rule_2015(F_2015 + F_FY, 32, 32, 10),
+        pursi_rule_2015(F_2015 + F_DG, 40, 10, 10),
+        pursi_rule_2015(F_2015 + F_TK, 25, 10, 0),
 
         # Koululentomaksu
         FlightRule(lambda flight: 5, F_PURTSIKKA + F_2015 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
