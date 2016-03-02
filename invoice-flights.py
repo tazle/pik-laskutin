@@ -162,7 +162,7 @@ def grouped_lines(lines):
     return by_account
 
 def events_to_invoices(events, rules, invoice_date=dt.date.today()):
-    by_account = grouped_lines(events_to_lines(events, rues))
+    by_account = grouped_lines(events_to_lines(events, rules))
     for account in sorted(by_account.keys()):
         lines = sorted(by_account[account], key=lambda line: line.date)
         yield Invoice(account, invoice_date, lines)
