@@ -66,7 +66,7 @@ class InvoiceLine(object):
 
 class BillingContext(object):
     """
-    Provides numeric variables for accounts
+    Provides numeric and string variables for accounts
     """
     def __init__(self):
         self.account_contexts = collections.defaultdict(lambda: 0)
