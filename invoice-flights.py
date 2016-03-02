@@ -102,7 +102,7 @@ def make_rules(ctx=BillingContext()):
                    SetDateRule(ID_KK_2014, ctx, SimpleRule([ItemFilter(u".*[kK]urssikönttä.*")])),
                    SimpleRule(F_2014)]),
 
-        FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
+        FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s"),
     ]
 
     rules_2015 = [
