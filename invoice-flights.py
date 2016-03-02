@@ -43,14 +43,14 @@ def make_rules(ctx=BillingContext()):
     F_TOW = [AircraftFilter("TOW")]
     F_MOTTI = [AircraftFilter("DDS","CAO","TOW")]
     F_PURTSIKKA = [AircraftFilter("650","787","733","883","952")]
-    F_KAIKKI_KONEET = F_MOTTI + F_PURTSIKKA
+    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","650","787","733","883","952")]
     F_PURSIK = [SinceDateFilter(ctx, ID_PK_2014)]
     F_KURSSIK = [SinceDateFilter(ctx, ID_KK_2014)]
     F_LASKUTUSLISA = [InvoicingChargeFilter()]
 
     F_2015 = [PeriodFilter(Period.full_year(2015))]
     F_PURTSIKKA_2015 = [AircraftFilter("650","787","733","883","952","TK")]
-    F_KAIKKI_KONEET_2015 = F_MOTTI + F_PURTSIKKA_2015
+    F_KAIKKI_KONEET_2015 = [AircraftFilter("DDS","CAO","TOW","650","787","733","883","952","TK")]
     F_PURSIK_2015 = [SinceDateFilter(ctx, ID_PK_2015)]
     F_KURSSIK_2015 = [SinceDateFilter(ctx, ID_KK_2015)]
 
