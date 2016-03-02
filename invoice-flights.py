@@ -29,6 +29,7 @@ def make_rules(ctx=BillingContext()):
     ID_KK_2014 = u"kurssikönttä_2014"
     ID_KK_2015 = u"kurssikönttä_2015"
 
+    F_PAST = [PeriodFilter(Period(dt.date(2010,1,1), dt.date(2013,12,31)))]
 
     F_2014 = [PeriodFilter(Period.full_year(2014))]
     F_FK = [AircraftFilter("650")]
@@ -60,6 +61,12 @@ def make_rules(ctx=BillingContext()):
         return FirstRule([FlightRule(package_price, base_filters + F_PURSIK, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
                           FlightRule(kurssi_price, base_filters + F_KURSSIK, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
                           FlightRule(price, base_filters)])
+
+
+    rules_past = [
+        # Normal simple events from the past are OK
+        SimpleRule(F_PAST)
+    ]
 
     rules_2014 = [
         FlightRule(171, F_DDS + F_2014),
@@ -131,7 +138,7 @@ def make_rules(ctx=BillingContext()):
         FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
 
-    return rules_2014 + rules_2015
+    return rules_past + rules_2014 + rules_2015
 
 
 
