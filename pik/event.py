@@ -23,11 +23,10 @@ class SimpleEvent(object):
         
         for row in rows:
             try:
+                if row[0].startswith("Tapahtumap"):
+                    # Header row
+                    continue
                 row = [x.decode("utf-8") for x in row]
-                try:
-                    float(row[3])
-                except ValueError:
-                    continue # header row
                 date = parse_iso8601_date(row[0])
                 amount = float(row[3])
                 yield SimpleEvent(date, row[1], row[2], amount)
