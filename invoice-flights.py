@@ -169,9 +169,13 @@ def events_to_invoices(events, rules, invoice_date=dt.date.today()):
 
 
 def write_invoices_to_files(invoices, conf):
+    out_dir = conf["out_dir"]
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
     for invoice in invoices:
         account = invoice.account_id
-        with open(os.path.join(conf["out_dir"], account + ".txt"), "wb") as f:
+        with open(os.path.join(out_dir, account + ".txt"), "wb") as f:
             f.write(format_invoice(invoice, conf["description"]).encode("utf-8"))
 
 def write_total_csv(invoices, fname):
