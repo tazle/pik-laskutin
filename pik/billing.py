@@ -88,6 +88,6 @@ class BillingContext(object):
     def from_json(json_dict):
         result = BillingContext()
         for account_id, account_vars in json_dict.items():
-            for var_name, value in account_vars:
+            for var_name, value in account_vars.items():
                 result.set(account_id, var_name, value)
         return result
