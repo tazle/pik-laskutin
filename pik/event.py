@@ -1,5 +1,6 @@
 # -*- coding: utf-8
 import datetime as dt
+from pik.util import parse_iso8601_date
 
 class SimpleEvent(object):
     def __init__(self, date, account_id, item, amount):
@@ -21,14 +22,17 @@ class SimpleEvent(object):
         # ISO8601, string, string, float
         
         for row in rows:
-            row = [x.decode("utf-8") for x in row]
             try:
-                float(row[3])
-            except ValueError:
-                continue # header row
-            date = dt.date(*map(int, row[0].split("-")))
-            amount = float(row[3])
-            yield SimpleEvent(date, row[1], row[2], amount)
+                row = [x.decode("utf-8") for x in row]
+                try:
+                    float(row[3])
+                except ValueError:
+                    continue # header row
+                date = parse_iso8601_date(row[0])
+                amount = float(row[3])
+                yield SimpleEvent(date, row[1], row[2], amount)
+            except Exception, e:
+                raise ValueError("Error parsing CSV row %s" %row, e)
 
     @staticmethod
     def generate_from_nda(transactions, account_numbers=[], event_filter=lambda x: True, msg_template="Lentotilimaksu, %(ref)s"):
