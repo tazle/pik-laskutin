@@ -53,7 +53,7 @@ def format_invoice(invoice, additional_details=""):
     for line in sorted(invoice.lines, key=lambda line: line.date):
         if line.price == 0:
             continue
-        ret += "%s %s:  %.2f" % (line.date.strftime(dateformat), line.item, line.price) +"\n"
+        ret += " * %s %s:  %.2f" % (line.date.strftime(dateformat), line.item, line.price) +"\n"
     ret += "\n"
 
     ret += u"Myös seuraavat tapahtumat (à 0 EUR) on huomioitu:\n\n"
@@ -62,6 +62,6 @@ def format_invoice(invoice, additional_details=""):
         if not line.price == 0:
             continue
 
-        ret += u"%s %s" % (line.date.strftime(dateformat), line.item) +"\n"
+        ret += u" * %s %s" % (line.date.strftime(dateformat), line.item) +"\n"
 
     return ret
