@@ -13,6 +13,9 @@ class SimpleEvent(object):
     def __repr__(self):
         return u"SimpleEvent(%s, %s, %s, %f)" % (self.date, self.account_id, self.item, self.amount)
 
+    def __unicode__(self):
+        return u"SimpleEvent(%s, %s, %s, %f)" % (self.date, self.account_id, self.item, self.amount)
+
     @staticmethod
     def generate_from_csv(rows):
         # CSV format
