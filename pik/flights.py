@@ -55,9 +55,9 @@ class Flight(object):
                     raise Exception("Flight to weird timezone, times?")
 
                 if len(row) <= 16:
-                    yield Flight(row[0], date, row[2], row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14])
+                    yield Flight(row[0], date, str(row[2]), row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14])
                 elif len(row) >= 17:
-                    yield Flight(row[0], date, row[2], row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14], row[15], bool(row[16]))
+                    yield Flight(row[0], date, str(row[2]), row[3], row[4], person_count, row[6], row[7], row[8], row[9], n_landings, row[12], duration, row[14], row[15], bool(row[16]))
                 else:
                     raise ValueError(row)
             except Exception, e:
