@@ -29,7 +29,7 @@ class SimpleEvent(object):
                 row = [x.decode("utf-8") for x in row]
                 date = parse_iso8601_date(row[0])
                 amount = float(row[3])
-                yield SimpleEvent(date, row[1], row[2], amount)
+                yield SimpleEvent(date, str(row[1]).strip(), row[2], amount)
             except Exception, e:
                 raise ValueError("Error parsing CSV row %s" %row, e)
 
@@ -46,4 +46,4 @@ class SimpleEvent(object):
         for txn in transactions:
             if txn.iban in account_numbers:
                 if event_filter(txn):
-                    yield SimpleEvent(txn.date, txn.ref, msg_template %txn.__dict__, -txn.cents/100.0)
+                    yield SimpleEvent(txn.date, str(txn.ref), msg_template %txn.__dict__, -txn.cents/100.0)
