@@ -26,6 +26,13 @@ class DebugRule(object):
         return result
 
 class SimpleRule(object):
+    """
+    Simple rule for SimpleEvents
+
+    Matches a SimpleEvent that matches all the filters.
+
+    Creates a single InvoiceLine for the event.
+    """
     def __init__(self, filters=[]):
         self.filters = filters
 
@@ -37,6 +44,11 @@ class SimpleRule(object):
         return []
 
 class SinceDateFilter(object):
+    """
+    Match events on or after the date stored in given variable in given context.
+
+    Date must be stored in ISO 8601 format (yyyy-mm-dd)
+    """
     def __init__(self, ctx, variable_id):
         self.ctx = ctx
         self.variable_id = variable_id
@@ -49,10 +61,22 @@ class SinceDateFilter(object):
         except Exception:
             return False
 
-flightFilter = lambda ev: isinstance(ev, Flight)
-eventFilter = lambda ev: isinstance(ev, SimpleEvent)
+def flightFilter(ev):
+    """
+    Match events of type Flight
+    """
+    return isinstance(ev, Flight)
+
+def eventFilter(ev):
+    """
+    Match events of type SimpleEvent
+    """
+    return isinstance(ev, SimpleEvent)
 
 class ItemFilter(object):
+    """
+    Match events whose 'item' property matches given regexp.
+    """
     def __init__(self, regex):
         self.regex = regex
 
@@ -60,13 +84,23 @@ class ItemFilter(object):
         return re.search(self.regex, event.item)
 
 class PeriodFilter(object):
+    """
+    Match events in given period
+    """
     def __init__(self, period):
+        """
+        :param period: period to match
+        :type period: pik.util.Period
+        """
         self.period = period
 
     def __call__(self, event):
         return event.date in self.period
 
 class AircraftFilter(object):
+    """
+    Match (Flight) events with one of given aircraft
+    """
     def __init__(self, *aircraft):
         self.aircraft = aircraft
 
@@ -74,6 +108,9 @@ class AircraftFilter(object):
         return event.aircraft in self.aircraft
 
 class PurposeFilter(object):
+    """
+    Match (Flight) events with one of given purposes of flight
+    """
     def __init__(self, *purposes):
         self.purposes = purposes
 
@@ -81,6 +118,9 @@ class PurposeFilter(object):
         return event.purpose in self.purposes
 
 class NegationFilter(object):
+    """
+    Match events that don't match given filter
+    """
     def __init__(self, filter):
         self.filter = filter
 
@@ -88,19 +128,29 @@ class NegationFilter(object):
         return not self.filter(event)
 
 class TransferTowFilter(object):
+    """
+    Match (Flight) events with transfer_tow property
+    """
     def __call__(self, event):
         return bool(event.transfer_tow)
 
 class InvoicingChargeFilter(object):
+    """
+    Match (Flight) events with invoicing_comment set (indicates invoicing surcharge should be added)
+    """
     def __call__(self, event):
         return bool(event.invoicing_comment)
 
 class FlightRule(object):
+    """
+    Produce one InvoiceLine from a Flight event if it matches all the
+    filters, priced with given price, and with description derived from given template.
+    """
     def __init__(self, price, filters=[], template="Lento, %(aircraft)s, %(duration)d min"):
         """
-        @param price Hourly price, in euros, or pricing function that takes Flight event as parameter and returns price
-        @param filters Input filters (such as per-aircraft)
-        @param template Description tmeplate. Filled using string formatting with the event object's __dict__ context
+        :param price: Hourly price, in euros, or pricing function that takes Flight event as parameter and returns price
+        :param filters: Input filters (such as per-aircraft)
+        :param template: Description tmeplate. Filled using string formatting with the event object's __dict__ context
         """
         if isinstance(price, numbers.Number):
             self.pricing = lambda event: event.duration * (price / 60.0)
@@ -119,9 +169,12 @@ class FlightRule(object):
         return []
 
 class AllRules(object):
+    """
+    Apply all given rules, and return InvoiceLines produced by all of them
+    """
     def __init__(self, inner_rules):
         """
-        @param inner_rules Apply all inner rules to the incoming event and gather their InvoiceLines into the output
+        :param inner_rules: Apply all inner rules to the incoming event and gather their InvoiceLines into the output
         """
         self.inner_rules = inner_rules
 
@@ -132,9 +185,12 @@ class AllRules(object):
         return result
 
 class FirstRule(object):
+    """
+    Apply given rules until a rule produces an InvoiceLine, result is that line
+    """
     def __init__(self, inner_rules):
         """
-        @param inner_rules Apply inner rules in order, return with lines from first rule that produces output
+        :param inner_rules: Apply inner rules in order, return with lines from first rule that produces output
         """
         self.inner_rules = inner_rules
 
@@ -146,12 +202,22 @@ class FirstRule(object):
         return []
 
 class CappedRule(object):
+    """
+    Context-sensitive capped pricing rule
+
+    1. Retrieve value of variable from context
+    2. Apply inner rules to the event
+    3. Filter resulting invoice lines so that:
+      - if context value is already at or over cap, drop line
+      - if context value + line value is over cap, modify the line so that context value + modified line value is at cap value, add modified line to context value, and pass through modified line
+      - else add line value to context value, and pass through line
+    """
     def __init__(self, variable_id, cap_price, context, inner_rule):
         """
-        @param variable_id Variable to use for capping
-        @param inner_rule Rule that produces InvoiceLines that this object filters
-        @param cap_price Hourly price, in euros
-        @param context Billing context in which to store cap data
+        :param variable_id: Variable to use for capping
+        :param inner_rule: Rule that produces InvoiceLines that this object filters
+        :param cap_price: Hourly price, in euros
+        :param context: Billing context in which to store cap data
         """
         self.variable_id = variable_id
         self.inner_rule = inner_rule
@@ -175,10 +241,10 @@ class CappedRule(object):
             yield line
 
 class SetDateRule(object):
+        """
+        Rule that sets a context variable to date of last line produced by inner rule
+        """
     def __init__(self, variable_id, context, inner_rule):
-        """
-        Rule that sets a variable to date of last line produced by inner rule
-        """
         self.variable_id = variable_id
         self.inner_rule = inner_rule
         self.context = context
