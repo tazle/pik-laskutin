@@ -34,13 +34,14 @@ class Invoice(object):
         return [self.date.isoformat(), self.account_id, "Lentotilin saldo " + self.date.isoformat(), self.total()]
 
 class InvoiceLine(object):
-    def __init__(self, account_id, date, item, price, rule, event):
+    def __init__(self, account_id, date, item, price, rule, event, ledger_account_id):
         self.account_id = account_id # Account for which this line was generated
         self.date = date
         self.item = item
         self.price = price
         self.rule = rule # Rule that generated this invoice line
         self.event = event # Event that generated this invoice line
+        self.ledger_account_id = ledger_account_id # Ledger account for this event, "income from past years"
 
     def __str__(self):
         return "%s: %f <- %s" %(self.account_id, self.price, self.item)
@@ -49,7 +50,8 @@ class InvoiceLine(object):
         return {'account_id' : self.account_id,
                 'date' : self.date.isoformat(),
                 'item' : self.item,
-                'price' : self.price}
+                'price' : self.price,
+                'ledger_account_id' : self.ledger_account_id}
                # How to encode rules and events? Need dispatch to actual objects
                # Also, rules are stateful
                #'rule' : self.rule.to_json(),

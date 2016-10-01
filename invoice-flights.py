@@ -15,6 +15,15 @@ import os
 
 
 def make_rules(ctx=BillingContext()):
+    ACCT_PURSI_KEIKKA = 3220
+    ACCT_TOW = 3130
+    ACCT_DDS = 3101
+    ACCT_CAO = 3100
+    ACCT_TOWING = 3170 # Muut lentotoiminnan tulot
+    ACCT_PURSI_INSTRUCTION = 3470 # Muut tulot koulutustoiminnasta
+    ACCT_KALUSTO = 3010
+    ACCT_LASKUTUSLISA = 3610 # Hallinnon tulot
+
     ID_KM_2014 = u"kausimaksu_tot_2014"
     ID_KM_P_2014 = u"kausimaksu_pursi_2014"
     ID_KM_M_2014 = u"kausimaksu_motti_2014"
@@ -58,14 +67,14 @@ def make_rules(ctx=BillingContext()):
 
 
     def pursi_rule(base_filters, price, kurssi_price = 0, package_price = 0):
-        return FirstRule([FlightRule(package_price, base_filters + F_PURSIK, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
-                          FlightRule(kurssi_price, base_filters + F_KURSSIK, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
-                          FlightRule(price, base_filters)])
+        return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
+                          FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
+                          FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
 
     def pursi_rule_2015(base_filters, price, kurssi_price = 0, package_price = 0):
-        return FirstRule([FlightRule(package_price, base_filters + F_PURSIK_2015, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
-                          FlightRule(kurssi_price, base_filters + F_KURSSIK_2015, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
-                          FlightRule(price, base_filters)])
+        return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK_2015, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
+                          FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK_2015, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
+                          FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
 
 
     rules_past = [
@@ -74,12 +83,12 @@ def make_rules(ctx=BillingContext()):
     ]
 
     rules_2014 = [
-        FlightRule(171, F_DDS + F_2014),
-        FlightRule(134, F_CAO + F_2014),
-        FlightRule(146, F_TOW + [PeriodFilter(Period(dt.date(2014, 1, 1), dt.date(2014, 3, 31)))]),
+        FlightRule(171, ACCT_DDS, F_DDS + F_2014),
+        FlightRule(134, ACCT_CAO, F_CAO + F_2014),
+        FlightRule(146, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2014, 1, 1), dt.date(2014, 3, 31)))]),
         # Variable price for TOW in the second period, based on purpose of flight
-        FirstRule([FlightRule(124, F_TOW + [PeriodFilter(Period(dt.date(2013, 4, 1), dt.date(2014, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
-                   FlightRule(104, F_TOW + [PeriodFilter(Period(dt.date(2013, 4, 1), dt.date(2014, 12, 31)))])
+        FirstRule([FlightRule(124, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2013, 4, 1), dt.date(2014, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(104, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2013, 4, 1), dt.date(2014, 12, 31)))])
                ]),
 
         pursi_rule(F_2014 + F_FK, 15),
@@ -89,15 +98,15 @@ def make_rules(ctx=BillingContext()):
         pursi_rule(F_2014 + F_DG, 40),
 
         # Koululentomaksu
-        FlightRule(lambda flight: 5, F_PURTSIKKA + F_2014 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
+        FlightRule(lambda ev: 5, ACCT_PURSI_INSTRUCTION, F_PURTSIKKA + F_2014 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
 
         CappedRule(ID_KM_2014, 90, ctx,
                    AllRules([CappedRule(ID_KM_P_2014, 70, ctx,
-                                         FlightRule(10, [PeriodFilter(Period.full_year(2014)),
+                                         FlightRule(10, ACCT_KALUSTO, [PeriodFilter(Period.full_year(2014)),
                                                               AircraftFilter("650", "733", "787", "883", "952")],
                                                          u"Kalustomaksu, %(aircraft)s, %(duration)d min")),
                               CappedRule(ID_KM_M_2014, 70, ctx,
-                                         FlightRule(10, [PeriodFilter(Period.full_year(2014)),
+                                         FlightRule(10, ACCT_KALUSTO, [PeriodFilter(Period.full_year(2014)),
                                                          AircraftFilter("DDS", "CAO", "TOW"),
                                                          NegationFilter(TransferTowFilter())], # No kalustomaksu for transfer tows
                                                          u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
@@ -107,14 +116,14 @@ def make_rules(ctx=BillingContext()):
                    SetDateRule(ID_KK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[kK]urssikönttä.*")])),
                    SimpleRule(F_2014)]),
 
-        FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s"),
+        FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s"),
     ]
 
     rules_2015 = [
-        FlightRule(171, F_DDS + F_2015),
+        FlightRule(171, ACCT_DDS, F_DDS + F_2015),
         # Variable price for TOW in the second period, based on purpose of flight
-        FirstRule([FlightRule(124, F_TOW + F_2015 + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
-                   FlightRule(104, F_TOW + F_2015)
+        FirstRule([FlightRule(124, ACCT_TOWING, F_TOW + F_2015 + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(104, ACCT_TOW, F_TOW + F_2015)
                ]),
 
         pursi_rule_2015(F_2015 + F_FK, 15),
@@ -125,14 +134,14 @@ def make_rules(ctx=BillingContext()):
         pursi_rule_2015(F_2015 + F_TK, 25, 10, 0),
 
         # Koululentomaksu
-        FlightRule(lambda flight: 5, F_PURTSIKKA + F_2015 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
+        FlightRule(lambda ev: 5, ACCT_PURSI_INSTRUCTION, F_PURTSIKKA + F_2015 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
 
         CappedRule(ID_KM_2015, 90, ctx,
                    AllRules([CappedRule(ID_KM_P_2015, 70, ctx,
-                                         FlightRule(10, F_2015 + F_PURTSIKKA_2015,
+                                         FlightRule(10, ACCT_KALUSTO, F_2015 + F_PURTSIKKA_2015,
                                                          u"Kalustomaksu, %(aircraft)s, %(duration)d min")),
                               CappedRule(ID_KM_M_2015, 70, ctx,
-                                         FlightRule(10, F_2015 + F_MOTTI,
+                                         FlightRule(10, ACCT_KALUSTO, F_2015 + F_MOTTI,
                                                          u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
 
         # Normal simple events
@@ -140,7 +149,7 @@ def make_rules(ctx=BillingContext()):
                    SetDateRule(ID_KK_2015, ctx, SimpleRule(F_2015 + [ItemFilter(u".*[kK]urssikönttä.*")])),
                    SimpleRule(F_2015)]),
 
-        FlightRule(lambda flight: 2, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
+        FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
 
     return rules_past + rules_2014 + rules_2015
@@ -191,6 +200,22 @@ def write_total_csv(invoices, fname):
 def is_invoice_zero(invoice):
     return abs(invoice.total()) < 0.01
 
+def make_event_validator(pik_ids, external_ids):
+    def event_validator(event):
+        if not isinstance(event.account_id, str):
+            raise ValueError(u"Account id must be string, was: " + repr(event.account_id) + u" in " + unicode(event))
+        if not ((event.account_id in pik_ids and len(event.account_id) in (4,6)) or
+                event.account_id in external_ids):
+            raise ValueError("Invalid id was: " + repr(event.account_id) + " in " + unicode(event).encode("utf-8"))
+        return event
+    return event_validator
+
+def read_pik_ids(fnames):
+    result = []
+    for fname in fnames:
+        result.extend(x.strip() for x in open(fname, 'rb').readlines() if x.strip())
+    return result
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print "Usage: invoice-flights.py <conf-file> <total-csv-file>"
@@ -226,19 +251,28 @@ if __name__ == '__main__':
         sources.append(SimpleEvent.generate_from_nda(reader, ["FI2413093000112458"], lambda event: bank_txn_date_filter(event) and event.cents > 0 and event.ref and (len(event.ref) == 4 or len(event.ref) == 6)))
 
     invoice_date = parse_iso8601_date(conf['invoice_date'])
-    events = sorted(chain(*sources), key=lambda event: event.date)
+    event_validator = make_event_validator(read_pik_ids(conf['valid_id_files']), conf['no_invoicing_prefix'])
+    events = list(sorted(chain(*sources), key=lambda event: event.date))
+    for event in events:
+        try:
+            event_validator(event)
+        except ValueError, e:
+            print >> sys.stderr, "Invalid account id", event.account_id, unicode(event)
 
     invoices = list(events_to_invoices(events, rules, invoice_date=invoice_date))
-
-    if "context_file_out" in conf:
-        json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
 
     valid_invoices = [i for i in invoices if not is_invoice_zero(i)]
     invalid_invoices = [i for i in invoices if is_invoice_zero(i)]
 
+    out_dir = conf["out_dir"]
+    if os.path.exists(out_dir):
+        raise ValueError("out_dir already exists: " + out_dir)
+
     write_invoices_to_files(valid_invoices, conf)
     write_invoices_to_files(invalid_invoices, conf)
     write_total_csv(invoices, total_csv_fname)
+    if "context_file_out" in conf:
+        json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
 
     machine_readable_invoices = [invoice.to_json() for invoice in invoices]
 

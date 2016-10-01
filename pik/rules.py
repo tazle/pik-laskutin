@@ -39,8 +39,7 @@ class SimpleRule(object):
     def invoice(self, event):
         if isinstance(event, SimpleEvent):
             if all(f(event) for f in self.filters):
-                return [InvoiceLine(event.account_id, event.date, event.item, event.amount, self, event)]
-            
+                return [InvoiceLine(event.account_id, event.date, event.item, event.amount, self, event, event.ledger_account_id)]
         return []
 
 class SinceDateFilter(object):
@@ -146,9 +145,10 @@ class FlightRule(object):
     Produce one InvoiceLine from a Flight event if it matches all the
     filters, priced with given price, and with description derived from given template.
     """
-    def __init__(self, price, filters=[], template="Lento, %(aircraft)s, %(duration)d min"):
+    def __init__(self, price, ledger_account_id, filters=[], template="Lento, %(aircraft)s, %(duration)d min"):
         """
         :param price: Hourly price, in euros, or pricing function that takes Flight event as parameter and returns price
+        :param ledger_account_id: Ledger account id of the other side of the transaction (income account)
         :param filters: Input filters (such as per-aircraft)
         :param template: Description tmeplate. Filled using string formatting with the event object's __dict__ context
         """
@@ -158,13 +158,14 @@ class FlightRule(object):
             self.pricing = price
         self.filters = filters
         self.template = template
+        self.ledger_account_id = ledger_account_id
 
     def invoice(self, event):
         if isinstance(event, Flight):
             if all(f(event) for f in self.filters):
                 line = self.template %event.__dict__
                 price = self.pricing(event)
-                return [InvoiceLine(event.account_id, event.date, line, price, self, event)]
+                return [InvoiceLine(event.account_id, event.date, line, price, self, event, self.ledger_account_id)]
             
         return []
 
@@ -236,14 +237,14 @@ class CappedRule(object):
                 continue
             if ctx_val + line.price > self.cap_price:
                 # Cap price of line to match cap
-                line = InvoiceLine(line.account_id, line.date, line.item + ", rajattu", self.cap_price - ctx_val, self, line.event)
+                line = InvoiceLine(line.account_id, line.date, line.item + ", rajattu", self.cap_price - ctx_val, self, line.event, line.ledger_account_id)
             self.context.set(line.account_id, self.variable_id, ctx_val + line.price)
             yield line
 
 class SetDateRule(object):
-        """
-        Rule that sets a context variable to date of last line produced by inner rule
-        """
+    """
+    Rule that sets a context variable to date of last line produced by inner rule
+    """
     def __init__(self, variable_id, context, inner_rule):
         self.variable_id = variable_id
         self.inner_rule = inner_rule
