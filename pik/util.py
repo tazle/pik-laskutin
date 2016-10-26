@@ -23,7 +23,9 @@ def parse_iso8601_date(datestr):
     except ValueError, e:
         raise ValueError("Could not parse date %s" %datestr, e)
 
-def format_invoice(invoice, additional_details=""):
+FORMAT_2015 = "2015"
+FORMAT_2014 = "2014"
+def format_invoice(invoice, additional_details="", format=FORMAT_2015):
 
     dateformat = "%d.%m.%Y"
     spacer = "---------------------------"
@@ -32,10 +34,13 @@ def format_invoice(invoice, additional_details=""):
     total_price = sum(l.price for l in invoice.lines)
 
     ret = \
-          u"PIK ry jäsenlaskutus, viite %s\n" % invoice.account_id + spacer + "\n\n"
+          u"PIK ry jäsenlaskutus, viite %s\n" % invoice.account_id + spacer + "\n"
 
-    ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
-
+    if format == FORMAT_2015:
+        ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
+    elif format == FORMAT_2014 and total_price <= 0:
+            ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
+        
     if total_price > 0:
         ret += u"Laskun päivämäärä: " + invoice.date.strftime(dateformat) + "\n\n" + \
                u"Saaja: Polyteknikkojen Ilmailukerho ry\n" + \
@@ -44,7 +49,10 @@ def format_invoice(invoice, additional_details=""):
                u"Laskun eräpäivä: " + (invoice.date + due_in).strftime(dateformat) + "\n\n" + \
                u"Maksettavaa: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
     else:
-        ret += u"Ei maksettavaa kerholle, ennakkomaksuja kerholla %.2f EUR." %(-total_price) + "\n" + spacer + "\n\n"
+        if format == FORMAT_2015:
+            ret += u"Ei maksettavaa kerholle, ennakkomaksuja kerholla %.2f EUR." %(-total_price) + "\n" + spacer + "\n\n"
+        else:
+            ret += u"Ei maksettavaa kerholle." + "\n" + spacer + "\n\n"
 
     ret += additional_details + "\n\n"
 
@@ -53,7 +61,9 @@ def format_invoice(invoice, additional_details=""):
     for line in sorted(invoice.lines, key=lambda line: line.date):
         if line.price == 0:
             continue
-        ret += " * %s %s:  %.2f" % (line.date.strftime(dateformat), line.item, line.price) +"\n"
+        if format == FORMAT_2015:
+            ret += " * "
+        ret += "%s %s:  %.2f" % (line.date.strftime(dateformat), line.item, line.price) +"\n"
     ret += "\n"
 
     ret += u"Myös seuraavat tapahtumat (à 0 EUR) on huomioitu:\n\n"
@@ -62,6 +72,9 @@ def format_invoice(invoice, additional_details=""):
         if not line.price == 0:
             continue
 
-        ret += u" * %s %s" % (line.date.strftime(dateformat), line.item) +"\n"
+        
+        if format == FORMAT_2015:
+            ret += " * "
+        ret += u"%s %s" % (line.date.strftime(dateformat), line.item) +"\n"
 
     return ret

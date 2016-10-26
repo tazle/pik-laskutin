@@ -46,6 +46,12 @@ class InvoiceLine(object):
     def __str__(self):
         return "%s: %f <- %s" %(self.account_id, self.price, self.item)
 
+    def __repr__(self):
+        return unicode(self)
+
+    def __unicode__(self):
+        return u"%s: %f <- %s" %(self.account_id, self.price, self.item)
+
     def to_json(self):
         return {'account_id' : self.account_id,
                 'date' : self.date.isoformat(),

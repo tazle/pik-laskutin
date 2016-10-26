@@ -3,7 +3,7 @@ import datetime as dt
 from pik.util import parse_iso8601_date
 
 class SimpleEvent(object):
-    def __init__(self, date, account_id, item, amount, ledger_account_id):
+    def __init__(self, date, account_id, item, amount, ledger_account_id=None):
         self.date = date
         self.account_id = account_id
         self.item = item
@@ -12,10 +12,10 @@ class SimpleEvent(object):
         self.ledger_account_id = ledger_account_id
 
     def __repr__(self):
-        return u"SimpleEvent(%s, %s, %s, %f, %d)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id)
+        return u"SimpleEvent(%s, %s, %s, %f, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id)
 
     def __unicode__(self):
-        return u"SimpleEvent(%s, %s, %s, %f, %d)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id)
+        return u"SimpleEvent(%s, %s, %s, %f, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id)
 
     @staticmethod
     def generate_from_csv(rows):
@@ -36,14 +36,16 @@ class SimpleEvent(object):
 
         for row in rows:
             try:
-                if row[0].startswith("Tapahtumap"):
+                if row[0].startswith("Tapahtumap") or row[0].startswith("Pvm"):
                     # Header row
                     continue
                 row = [x.decode("utf-8") for x in row]
                 date = parse_iso8601_date(row[0])
                 amount = float(row[3])
-                if row[2].startswith("Lentotilin saldo") or row[5].startswith(u"käsin"):
-                    ledger_account_id = 0
+                if row[2].startswith("Lentotilin saldo") or \
+                   row[2].startswith("Loppusaldo 2013") or \
+                   row[5].startswith(u"käsin") or len(row) < 8:
+                    ledger_account_id = None
                 else:
                     ledger_account_id = int(row[7])
                 yield SimpleEvent(date, str(row[1]).strip(), row[2], amount, ledger_account_id)
@@ -63,4 +65,4 @@ class SimpleEvent(object):
         for txn in transactions:
             if txn.iban in account_numbers:
                 if event_filter(txn):
-                    yield SimpleEvent(txn.date, str(txn.ref), msg_template %txn.__dict__, -txn.cents/100.0, 1422)
+                    yield SimpleEvent(txn.date, str(txn.ref), msg_template %txn.__dict__, -txn.cents/100.0)

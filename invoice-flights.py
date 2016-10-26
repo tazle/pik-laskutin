@@ -4,6 +4,7 @@ from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllR
 from pik.util import Period, format_invoice, parse_iso8601_date
 from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
+from pik.hansa import SimpleHansaTransaction, SimpleHansaRow
 from pik import nda
 import datetime as dt
 import csv
@@ -12,7 +13,9 @@ from collections import defaultdict
 from itertools import chain
 import json
 import os
-
+from itertools import izip, count
+import unicodedata
+import math
 
 def make_rules(ctx=BillingContext()):
     ACCT_PURSI_KEIKKA = 3220
@@ -187,10 +190,64 @@ def write_invoices_to_files(invoices, conf):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
+    invoice_format_id = conf.get("invoice_format", "2015")
     for invoice in invoices:
         account = invoice.account_id
         with open(os.path.join(out_dir, account + ".txt"), "wb") as f:
-            f.write(format_invoice(invoice, conf["description"]).encode("utf-8"))
+            f.write(format_invoice(invoice, conf["description"], invoice_format_id).encode("utf-8"))
+
+def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
+    out_dir = conf["out_dir"]
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    hansa_txns = []
+    hansa_txn_id_gen = count(conf["hansa_first_txn_id"])
+    for invoice in invoices:
+        lines_by_rule = defaultdict(lambda: [])
+        for line in invoice.lines:
+            lines_by_rule[line.rule].append(line)
+
+        for lineset in lines_by_rule.values():
+            # Check all lines have same sign
+            signs = [math.copysign(line.price, 1) for line in lineset]
+            
+            if not (all(sign >= 0 for sign in signs) or all(sign <= 0 for sign in signs)):
+                print >> sys.stderr, "Inconsistent signs:", lineset, signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
+
+            # Check all lines have same ledger account
+            ledger_accounts = set(line.ledger_account_id for line in lineset)
+            if len(ledger_accounts) != 1:
+                print >> sys.stderr, "Inconsistent ledger accounts:", lineset, ledger_accounts
+                
+        hansa_rows = []
+        for lineset in lines_by_rule.values():
+            ledger_account_id = lineset[0].ledger_account_id
+            if not ledger_account_id:
+                continue
+            
+            total_price = sum(line.price for line in lineset if line.ledger_account_id)
+            if total_price == 0:
+                continue
+            
+            title = os.path.commonprefix([line.item for line in lineset])
+            if total_price > 0:
+                member_line = SimpleHansaRow(1422, title, debit=total_price)
+                club_line = SimpleHansaRow(ledger_account_id, title, credit=total_price)
+            else:
+                member_line = SimpleHansaRow(1422, title, credit=total_price)
+                club_line = SimpleHansaRow(ledger_account_id, title, debit=total_price)
+            hansa_rows.append(club_line)
+            hansa_rows.append(member_line)
+                
+        if hansa_rows:
+            hansa_id = hansa_txn_id_gen.next()
+            hansa_txn = SimpleHansaTransaction(hansa_id, conf["hansa_year"], conf["hansa_entry_date"], conf["hansa_txn_date"], "Lentolasku, " + invoice.account_id, invoice.account_id, hansa_rows)
+            hansa_txns.append(hansa_txn)
+
+    with open(os.path.join(out_dir, "hansa-export-" + conf["invoice_date"] + ".txt"), "wb") as f:
+        for txn in hansa_txns:
+            f.write(unicodedata.normalize("NFC", txn.hansaformat()).encode("iso-8859-1"))
 
 def write_total_csv(invoices, fname):
     import csv
@@ -241,7 +298,7 @@ if __name__ == '__main__':
         sources.append(Flight.generate_from_csv(reader))
 
     for fname in conf['nda_files']:
-        bank_txn_date_filter = lambda: True
+        bank_txn_date_filter = lambda txn_date: True
         if 'bank_txn_dates' in conf:
             dates = map(parse_iso8601_date, conf['bank_txn_dates'])
             bank_txn_date_filter = PeriodFilter(Period(*dates))
@@ -270,6 +327,7 @@ if __name__ == '__main__':
 
     write_invoices_to_files(valid_invoices, conf)
     write_invoices_to_files(invalid_invoices, conf)
+    write_hansa_export_file(valid_invoices, invalid_invoices, conf)
     write_total_csv(invoices, total_csv_fname)
     if "context_file_out" in conf:
         json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
