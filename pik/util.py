@@ -37,7 +37,7 @@ def format_invoice(invoice, additional_details="", format=FORMAT_2015):
           u"PIK ry jäsenlaskutus, viite %s\n" % invoice.account_id + spacer + "\n"
 
     if format == FORMAT_2015:
-        ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
+        ret += u"\nLentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
     elif format == FORMAT_2014 and total_price <= 0:
             ret += u"Lentotilin saldo: %.2f EUR" % (total_price) + "\n" + spacer + "\n\n"
         
