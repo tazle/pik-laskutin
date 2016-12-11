@@ -71,3 +71,6 @@ class SimpleHansaRow(object):
             return "HansaRow(%d, %s, credit=%.2f)" % (self.account_no, self.row_title, self.credit)
         else:
             return "HansaRow(%d, %s, debit=%.2f)" % (self.account_no, self.row_title, self.debit)
+
+    def __cmp__(self, other):
+        return cmp((self.account_no, self.row_title, self.debit, self.credit), (other.account_no, other.row_title, other.debit, other.credit))

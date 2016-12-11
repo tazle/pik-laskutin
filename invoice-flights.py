@@ -239,7 +239,9 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
                 club_line = SimpleHansaRow(ledger_account_id, title, debit=total_price)
             hansa_rows.append(club_line)
             hansa_rows.append(member_line)
-                
+
+        hansa_rows.sort()
+
         if hansa_rows:
             hansa_id = hansa_txn_id_gen.next()
             hansa_txn = SimpleHansaTransaction(hansa_id, conf["hansa_year"], conf["hansa_entry_date"], conf["hansa_txn_date"], "Lentolasku, " + invoice.account_id, invoice.account_id, hansa_rows)
