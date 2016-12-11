@@ -254,7 +254,12 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
 def write_total_csv(invoices, fname):
     import csv
     writer = csv.writer(open(fname, 'wb'))
-    writer.writerows(invoice.to_csvrow() for invoice in invoices)
+    writer.writerows(invoice.to_csvrow_total() for invoice in invoices)
+
+def write_row_csv(invoices, fname):
+    import csv
+    writer = csv.writer(open(fname, 'wb'))
+    writer.writerows(invoice.to_csvrows() for invoice in invoices)
 
 def is_invoice_zero(invoice):
     return abs(invoice.total()) < 0.01
@@ -277,10 +282,9 @@ def read_pik_ids(fnames):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print "Usage: invoice-flights.py <conf-file> <total-csv-file>"
+        print "Usage: invoice-flights.py <conf-file>"
         sys.exit(1)
     conf = json.load(open(sys.argv[1], 'rb'))
-    total_csv_fname = sys.argv[2]
 
     sources = []
 
@@ -327,10 +331,14 @@ if __name__ == '__main__':
     if os.path.exists(out_dir):
         raise ValueError("out_dir already exists: " + out_dir)
 
+    total_csv_fname = conf.get("total_csv_name", os.path.join(out_dir, "totals.csv"))
+    row_csv_fname = conf.get("row_csv_name", os.path.join(out_dir, "rows.csv"))
+
     write_invoices_to_files(valid_invoices, conf)
     write_invoices_to_files(invalid_invoices, conf)
     write_hansa_export_file(valid_invoices, invalid_invoices, conf)
     write_total_csv(invoices, total_csv_fname)
+    write_row_csv(invoices, row_csv_fname)
     if "context_file_out" in conf:
         json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
 

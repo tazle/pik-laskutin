@@ -23,7 +23,7 @@ class Invoice(object):
                        parse_iso8601_date(json_dict['date']),
                        [InvoiceLine.from_json(line) for line in json_dict['lines']])
 
-    def to_csvrow(self):
+    def to_csvrow_total(self):
         """
         Convert to CSV row that can be fed back to the system as SimpleEvents
         to act as the basis for the next billing round.
@@ -32,6 +32,18 @@ class Invoice(object):
 
         """
         return [self.date.isoformat(), self.account_id, "Lentotilin saldo " + self.date.isoformat(), self.total()]
+
+    def to_csvrows(self):
+        """
+        Convert to CSV rows that can be used in bookkeeping.
+
+        SimpleEvent CSV format: Tapahtumapäivä,Maksajan viitenumero,Selite,Summa
+
+        """
+        result = []
+        for line in self.lines:
+            result.append(line.to_csvrow())
+        return result
 
 class InvoiceLine(object):
     def __init__(self, account_id, date, item, price, rule, event, ledger_account_id):
@@ -51,6 +63,15 @@ class InvoiceLine(object):
 
     def __unicode__(self):
         return u"%s: %f <- %s" %(self.account_id, self.price, self.item)
+
+    def to_csvrow(self):
+        """
+        Convert to CSV row that can be used in bookkeeping.
+
+        SimpleEvent CSV format: Tapahtumapäivä,Maksajan viitenumero,Selite,Summa
+
+        """
+        return [self.date.isoformat(), self.account_id, self.item, self.price]
 
     def to_json(self):
         return {'account_id' : self.account_id,
