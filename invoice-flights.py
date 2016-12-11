@@ -260,9 +260,10 @@ def write_total_csv(invoices, fname):
     writer.writerows(invoice.to_csvrow_total() for invoice in invoices)
 
 def write_row_csv(invoices, fname):
-    import csv
-    writer = csv.writer(open(fname, 'wb'))
-    writer.writerows(invoice.to_csvrows() for invoice in invoices)
+    import unicodecsv
+    writer = unicodecsv.writer(open(fname, 'wb'), encoding='utf-8')
+    for rowset in [invoice.to_csvrows() for invoice in invoices]:
+        writer.writerows(rowset)
 
 def is_invoice_zero(invoice):
     return abs(invoice.total()) < 0.01
