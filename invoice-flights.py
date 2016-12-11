@@ -10,7 +10,7 @@ import datetime as dt
 import csv
 import sys
 from collections import defaultdict
-from itertools import chain
+from itertools import chain, groupby
 import json
 import os
 from itertools import izip, count
@@ -208,37 +208,40 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
         for line in invoice.lines:
             lines_by_rule[line.rule].append(line)
 
-        for lineset in lines_by_rule.values():
+        for (rule, lineset) in lines_by_rule.iteritems():
             # Check all lines have same sign
             signs = [math.copysign(line.price, 1) for line in lineset]
             
             if not (all(sign >= 0 for sign in signs) or all(sign <= 0 for sign in signs)):
                 print >> sys.stderr, "Inconsistent signs:", lineset, signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
 
-            # Check all lines have same ledger account
-            ledger_accounts = set(line.ledger_account_id for line in lineset)
-            if len(ledger_accounts) != 1:
-                print >> sys.stderr, "Inconsistent ledger accounts:", lineset, ledger_accounts
+            # Check all lines have same ledger account, excluding lines that don't go
+            # into ledger via this process (they have None as ledger_account_id)
+            ledger_accounts = set(line.ledger_account_id for line in lineset) - set([None])
+            if len(ledger_accounts) > 1 and not rule.allow_multiple_ledger_categories:
+                print >> sys.stderr, u"Inconsistent ledger accounts:", u", ".join(unicode(l) for l in lineset), ledger_accounts
                 
         hansa_rows = []
         for lineset in lines_by_rule.values():
-            ledger_account_id = lineset[0].ledger_account_id
-            if not ledger_account_id:
-                continue
+            extract_lai = lambda x: x.ledger_account_id
+            for (ledger_account_id, lines) in groupby(sorted(lineset, key=extract_lai), key=extract_lai):
+                lines = list(lines)
+                if not ledger_account_id:
+                    continue
             
-            total_price = sum(line.price for line in lineset if line.ledger_account_id)
-            if total_price == 0:
-                continue
+                total_price = sum(line.price for line in lines if line.ledger_account_id)
+                if total_price == 0:
+                    continue
             
-            title = os.path.commonprefix([line.item for line in lineset])
-            if total_price > 0:
-                member_line = SimpleHansaRow(1422, title, debit=total_price)
-                club_line = SimpleHansaRow(ledger_account_id, title, credit=total_price)
-            else:
-                member_line = SimpleHansaRow(1422, title, credit=total_price)
-                club_line = SimpleHansaRow(ledger_account_id, title, debit=total_price)
-            hansa_rows.append(club_line)
-            hansa_rows.append(member_line)
+                title = os.path.commonprefix([line.item for line in lines])
+                if total_price > 0:
+                    member_line = SimpleHansaRow(1422, title, debit=total_price)
+                    club_line = SimpleHansaRow(ledger_account_id, title, credit=total_price)
+                else:
+                    member_line = SimpleHansaRow(1422, title, credit=total_price)
+                    club_line = SimpleHansaRow(ledger_account_id, title, debit=total_price)
+                hansa_rows.append(club_line)
+                hansa_rows.append(member_line)
 
         hansa_rows.sort()
 

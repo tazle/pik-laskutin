@@ -12,7 +12,11 @@ import re
 import numbers
 import sys
 
-class DebugRule(object):
+class BaseRule(object):
+    # Don't allow multiple ledger accounts for lines produced by a rule by default
+    allow_multiple_ledger_accounts = False
+
+class DebugRule(BaseRule):
     def __init__(self, inner_rule, debug_filter=lambda event, result: bool(result), debug_func=lambda ev, result: sys.stdout.write(unicode(ev) + " " + unicode(result) + "\n")):
         self.inner_rule = inner_rule
         self.debug_filter = debug_filter
@@ -25,7 +29,7 @@ class DebugRule(object):
             self.debug_func(event, result)
         return result
 
-class SimpleRule(object):
+class SimpleRule(BaseRule):
     """
     Simple rule for SimpleEvents
 
@@ -35,6 +39,8 @@ class SimpleRule(object):
     """
     def __init__(self, filters=[]):
         self.filters = filters
+        # Allow multiple ledger accounts for lines produced by this rule, since the category comes from the source event
+        self.allow_multiple_ledger_categories = True
 
     def invoice(self, event):
         if isinstance(event, SimpleEvent):
@@ -140,7 +146,7 @@ class InvoicingChargeFilter(object):
     def __call__(self, event):
         return bool(event.invoicing_comment)
 
-class FlightRule(object):
+class FlightRule(BaseRule):
     """
     Produce one InvoiceLine from a Flight event if it matches all the
     filters, priced with given price, and with description derived from given template.
@@ -169,7 +175,7 @@ class FlightRule(object):
             
         return []
 
-class AllRules(object):
+class AllRules(BaseRule):
     """
     Apply all given rules, and return InvoiceLines produced by all of them
     """
@@ -185,7 +191,7 @@ class AllRules(object):
             result.extend(rule.invoice(event))
         return result
 
-class FirstRule(object):
+class FirstRule(BaseRule):
     """
     Apply given rules until a rule produces an InvoiceLine, result is that line
     """
@@ -202,7 +208,7 @@ class FirstRule(object):
                 return lines
         return []
 
-class CappedRule(object):
+class CappedRule(BaseRule):
     """
     Context-sensitive capped pricing rule
 
@@ -241,7 +247,7 @@ class CappedRule(object):
             self.context.set(line.account_id, self.variable_id, ctx_val + line.price)
             yield line
 
-class SetDateRule(object):
+class SetDateRule(BaseRule):
     """
     Rule that sets a context variable to date of last line produced by inner rule
     """
