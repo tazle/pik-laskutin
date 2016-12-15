@@ -37,7 +37,7 @@ class Invoice(object):
         """
         Convert to CSV rows that can be used in bookkeeping.
 
-        SimpleEvent CSV format: Tapahtumapäivä,Maksajan viitenumero,Selite,Summa
+        CSV format: Tapahtumapäivä,Laskutuspäivä,Maksajan viitenumero,Selite,Summa
 
         """
         result = []
@@ -46,14 +46,17 @@ class Invoice(object):
         return result
 
 class InvoiceLine(object):
-    def __init__(self, account_id, date, item, price, rule, event, ledger_account_id):
+    CsvRow = collections.namedtuple('InvoiceLineCsvRow', ['date', 'account_id', 'item', 'price', 'ledger_year'])
+    def __init__(self, account_id, date, item, price, rule, event, ledger_account_id, ledger_year=None, rollup=False):
         self.account_id = account_id # Account for which this line was generated
         self.date = date
         self.item = item
         self.price = price
         self.rule = rule # Rule that generated this invoice line
         self.event = event # Event that generated this invoice line
-        self.ledger_account_id = ledger_account_id # Ledger account for this event, "income from past years"
+        self.ledger_account_id = ledger_account_id # Ledger account for this event, e.g. "income from past years"
+        self.ledger_year = ledger_year # Ledger year for this event
+        self.rollup = rollup
 
     def __str__(self):
         return "%s: %f <- %s" %(self.account_id, self.price, self.item)
@@ -68,10 +71,10 @@ class InvoiceLine(object):
         """
         Convert to CSV row that can be used in bookkeeping.
 
-        SimpleEvent CSV format: Tapahtumapäivä,Maksajan viitenumero,Selite,Summa
+        CSV format: Tapahtumapäivä,Laskutuspäivä,Maksajan viitenumero,Selite,Summa,Kirjanpitovuosi
 
         """
-        return [self.date.isoformat(), self.account_id, self.item, self.price]
+        return InvoiceLine.CsvRow(self.date.isoformat(), self.account_id, self.item, self.price, self.ledger_year)
 
     def to_json(self):
         return {'account_id' : self.account_id,

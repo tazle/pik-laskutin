@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 from pik.flights import Flight
-from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter
+from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter, SetLedgerYearRule
 from pik.util import Period, format_invoice, parse_iso8601_date
 from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
@@ -155,7 +155,8 @@ def make_rules(ctx=BillingContext()):
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
 
-    return rules_past + rules_2014 + rules_2015
+    return rules_past + [SetLedgerYearRule(AllRules(rules_2014), 2014),
+                         SetLedgerYearRule(AllRules(rules_2015), 2015)]
 
 
 
@@ -259,11 +260,17 @@ def write_total_csv(invoices, fname):
     writer = csv.writer(open(fname, 'wb'))
     writer.writerows(invoice.to_csvrow_total() for invoice in invoices)
 
-def write_row_csv(invoices, fname):
+def write_row_csv(invoices, fname_template):
     import unicodecsv
-    writer = unicodecsv.writer(open(fname, 'wb'), encoding='utf-8')
-    for rowset in [invoice.to_csvrows() for invoice in invoices]:
-        writer.writerows(rowset)
+    by_year = defaultdict(lambda: [])
+    for invoice in invoices:
+        for line in invoice.lines:
+            if not line.rollup:
+                row = line.to_csvrow()
+                by_year[row.ledger_year].append(row)
+    for year, yearly_rowset in by_year.iteritems():
+        writer = unicodecsv.writer(open(fname_template%year, 'wb'), encoding='utf-8')
+        writer.writerows(yearly_rowset)
 
 def is_invoice_zero(invoice):
     return abs(invoice.total()) < 0.01
@@ -336,13 +343,13 @@ if __name__ == '__main__':
         raise ValueError("out_dir already exists: " + out_dir)
 
     total_csv_fname = conf.get("total_csv_name", os.path.join(out_dir, "totals.csv"))
-    row_csv_fname = conf.get("row_csv_name", os.path.join(out_dir, "rows.csv"))
+    row_csv_fname_template = conf.get("row_csv_name_template", os.path.join(out_dir, "rows_%s.csv"))
 
     write_invoices_to_files(valid_invoices, conf)
     write_invoices_to_files(invalid_invoices, conf)
     write_hansa_export_file(valid_invoices, invalid_invoices, conf)
     write_total_csv(invoices, total_csv_fname)
-    write_row_csv(invoices, row_csv_fname)
+    write_row_csv(invoices, row_csv_fname_template)
     if "context_file_out" in conf:
         json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
 

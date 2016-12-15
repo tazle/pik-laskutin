@@ -45,7 +45,7 @@ class SimpleRule(BaseRule):
     def invoice(self, event):
         if isinstance(event, SimpleEvent):
             if all(f(event) for f in self.filters):
-                return [InvoiceLine(event.account_id, event.date, event.item, event.amount, self, event, event.ledger_account_id)]
+                return [InvoiceLine(event.account_id, event.date, event.item, event.amount, self, event, event.ledger_account_id, event.ledger_year, event.rollup)]
         return []
 
 class SinceDateFilter(object):
@@ -260,4 +260,19 @@ class SetDateRule(BaseRule):
         lines = self.inner_rule.invoice(event)
         for line in lines:
             self.context.set(line.account_id, self.variable_id, line.date.isoformat())
+        return lines
+
+class SetLedgerYearRule(BaseRule):
+    """
+    Rule that writes given ledger year into output InvoiceLines if it's not set
+    """
+    def __init__(self, inner_rule, ledger_year):
+        self.inner_rule = inner_rule
+        self.ledger_year = ledger_year
+
+    def invoice(self, event):
+        lines = self.inner_rule.invoice(event)
+        for line in lines:
+            if line.ledger_year is None:
+                line.ledger_year = self.ledger_year
         return lines
