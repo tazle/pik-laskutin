@@ -202,12 +202,16 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
+    dates = map(parse_iso8601_date, conf['hansa_txn_dates'])
+    hansa_txn_date_filter = PeriodFilter(Period(*dates))
+
     hansa_txns = []
     hansa_txn_id_gen = count(conf["hansa_first_txn_id"])
     for invoice in invoices:
         lines_by_rule = defaultdict(lambda: [])
         for line in invoice.lines:
-            lines_by_rule[line.rule].append(line)
+            if hansa_txn_date_filter(line):
+                lines_by_rule[line.rule].append(line)
 
         for (rule, lineset) in lines_by_rule.iteritems():
             # Check all lines have same sign
