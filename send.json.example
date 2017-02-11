@@ -1,0 +1,8 @@
+{
+    "smtps_host" : "mail.kapsi.fi",
+    "smtp_user" : "kapsi-tunnus",
+    "smtp_password" : "kapsi-salasana",
+    "sender_address" : "rahastonhoitaja@pik.fi",
+    "email_file" : "/Users/tul/mun/pikh/jrek/mailit.csv",
+    "title" : "PIK Lentolasku 1/2014 viite %(id)s"
+}
