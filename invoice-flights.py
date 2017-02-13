@@ -56,7 +56,7 @@ def make_rules(ctx=BillingContext()):
     F_FY = [AircraftFilter("883")]
     F_DG = [AircraftFilter("952")]
     F_TK = [AircraftFilter("TK")]
-    F_HB = [AircraftFilter("HB")]
+    F_HB = [AircraftFilter("755")]
     F_DDS = [AircraftFilter("DDS")]
     F_CAO = [AircraftFilter("CAO")]
     F_TOW = [AircraftFilter("TOW")]
@@ -73,8 +73,8 @@ def make_rules(ctx=BillingContext()):
     F_PURSIK_2015 = [SinceDateFilter(ctx, ID_PK_2015)]
     F_KURSSIK_2015 = [SinceDateFilter(ctx, ID_KK_2015)]
 
-    F_PURTSIKKA_2016 = [AircraftFilter("650","787","733","883","952","HB")]
-    F_KAIKKI_KONEET_2016 = [AircraftFilter("TOW","650","787","733","883","952","HB")]
+    F_PURTSIKKA_2016 = [AircraftFilter("650","787","733","883","952","755")]
+    F_KAIKKI_KONEET_2016 = [AircraftFilter("TOW","650","787","733","883","952","755")]
     F_PURSIK_2016 = [SinceDateFilter(ctx, ID_PK_2016)]
     F_KURSSIK_2016 = [SinceDateFilter(ctx, ID_KK_2016)]
 

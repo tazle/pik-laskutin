@@ -29,6 +29,12 @@ class Flight(object):
     def __unicode__(self):
         return "Flight(" + ", ".join([self.date.isoformat(), self.aircraft, self.account_id]) + ")"
 
+    def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __repr__(self):
+        return unicode(self).encode("utf-8")
+
     @staticmethod
     def generate_from_csv(rows):
         # CSV format
@@ -49,8 +55,8 @@ class Flight(object):
                     continue # header row
             try:
                 date = dt.date(*map(int, row[1].split("-")))
-                person_count = int(row[5])
-                n_landings = int(row[11])
+                #person_count = int(row[5])
+                #n_landings = int(row[11])
                 duration = int(row[13])
                 if _flight_has_different_tz(row[6:7]):
                     raise Exception("Flight to weird timezone, times?")
@@ -68,6 +74,8 @@ class Flight(object):
 def _flight_has_different_tz(locations):
     same_tz = ["ef", "ee", "zz", "pirtti"]
     for _loc in locations:
+        if not _loc:
+            continue
         loc = _loc.lower()
         for acceptable_tz_prefix in same_tz:
             if loc.startswith(acceptable_tz_prefix):
