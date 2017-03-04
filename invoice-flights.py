@@ -260,7 +260,7 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
 
     with open(os.path.join(out_dir, "hansa-export-" + conf["invoice_date"] + ".txt"), "wb") as f:
         for txn in hansa_txns:
-            f.write(unicodedata.normalize("NFC", txn.hansaformat()).encode("iso-8859-1"))
+            f.write(unicodedata.normalize("NFC", txn.hansaformat()).encode("iso-8859-15"))
 
 def write_total_csv(invoices, fname):
     import csv
