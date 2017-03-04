@@ -218,10 +218,10 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
 
         for (rule, lineset) in lines_by_rule.iteritems():
             # Check all lines have same sign
-            signs = [math.copysign(line.price, 1) for line in lineset]
+            signs = [math.copysign(1, line.price) for line in lineset]
             
             if not (all(sign >= 0 for sign in signs) or all(sign <= 0 for sign in signs)):
-                print >> sys.stderr, "Inconsistent signs:", lineset, signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
+                print >> sys.stderr, "Inconsistent signs:", unicode(lineset), signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
 
             # Check all lines have same ledger account, excluding lines that don't go
             # into ledger via this process (they have None as ledger_account_id)
