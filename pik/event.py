@@ -59,7 +59,7 @@ class SimpleEvent(object):
                     ledger_account_id = int(row[7])
 
                 ledger_year = None
-                if len(row) >= 7 and row[6]:
+                if ledger_account_id and row[6]:
                     ledger_year = row[6]
                 yield SimpleEvent(date, str(row[1]).strip(), row[2], amount, ledger_account_id, ledger_year, rollup)
             except Exception, e:
