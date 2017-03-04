@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 from pik.flights import Flight
-from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter, SetLedgerYearRule
+from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter, SetLedgerYearRule, PositivePriceFilter, NegativePriceFilter
 from pik.util import Period, format_invoice, parse_iso8601_date
 from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
@@ -117,7 +117,8 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2014)]),
+                   SimpleRule(F_2014 + [PositivePriceFilter()]),
+                   SimpleRule(F_2014 + [NegativePriceFilter()])]),
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s"),
     ]
@@ -150,7 +151,9 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2015, ctx, SimpleRule(F_2015 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2015, ctx, SimpleRule(F_2015 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2015)]),
+                   SimpleRule(F_2015 + [PositivePriceFilter()]),
+                   SimpleRule(F_2015 + [NegativePriceFilter()])]),
+
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]

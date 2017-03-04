@@ -146,6 +146,20 @@ class InvoicingChargeFilter(object):
     def __call__(self, event):
         return bool(event.invoicing_comment)
 
+class PositivePriceFilter(object):
+    """
+    Match SimpleEvents with price 0 or greater
+    """
+    def __call__(self, event):
+        return event.amount >= 0
+
+class NegativePriceFilter(object):
+    """
+    Match SimpleEvents with price less than 0
+    """
+    def __call__(self, event):
+        return event.amount < 0
+
 class FlightRule(BaseRule):
     """
     Produce one InvoiceLine from a Flight event if it matches all the
