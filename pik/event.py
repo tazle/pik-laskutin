@@ -11,7 +11,7 @@ class SimpleEvent(object):
         self.deleted = False
         self.ledger_account_id = ledger_account_id # ledger_account_id is None means ledger entry is done externally
         self.ledger_year = ledger_year # ledger_year is None means ledger year is same as hansa year set in configuration
-        self.rollup = rollup # indicates that this is rollup rum of previous invoicings for the account, and should not be output anywhere except onteh invoice itself
+        self.rollup = rollup # indicates that this is rollup rum of previous invoicings for the account, and should not be output anywhere except on the invoice itself
 
     def __repr__(self):
         return u"SimpleEvent(%s, %s, %s, %f, %s, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id, self.ledger_year)
