@@ -39,13 +39,27 @@ def make_rules(ctx=BillingContext()):
     ID_KM_P_2016 = u"kausimaksu_pursi_2016"
     ID_KM_M_2016 = u"kausimaksu_motti_2016"
 
+    # Added 2017-10-09:
+    ID_KM_2017 = u"kausimaksu_tot_2017"
+    ID_KM_P_2017 = u"kausimaksu_pursi_2017"
+    ID_KM_M_2017 = u"kausimaksu_motti_2017"
+
+    # Added 2018-11-07:
+    ID_KM_2018 = u"kausimaksu_tot_2018"
+    ID_KM_P_2018 = u"kausimaksu_pursi_2018"
+    ID_KM_M_2018 = u"kausimaksu_motti_2018"
+    
     ID_PK_2014 = u"pursikönttä_2014"
     ID_PK_2015 = u"pursikönttä_2015"
     ID_PK_2016 = u"pursikönttä_2016"
+    ID_PK_2017 = u"pursikönttä_2017" # Added 2017-10-09
+    ID_PK_2018 = u"pursikönttä_2018" # Added 2018-11-07
 
     ID_KK_2014 = u"kurssikönttä_2014"
     ID_KK_2015 = u"kurssikönttä_2015"
     ID_KK_2016 = u"kurssikönttä_2016"
+    ID_KK_2017 = u"kurssikönttä_2017" # Added 2017-10-09
+    ID_KK_2018 = u"kurssikönttä_2018" # Added 2018-11-07
 
     F_PAST = [PeriodFilter(Period(dt.date(2010,1,1), dt.date(2013,12,31)))]
 
@@ -73,13 +87,26 @@ def make_rules(ctx=BillingContext()):
     F_PURSIK_2015 = [SinceDateFilter(ctx, ID_PK_2015)]
     F_KURSSIK_2015 = [SinceDateFilter(ctx, ID_KK_2015)]
 
+    F_2016 = [PeriodFilter(Period.full_year(2016))]
     F_PURTSIKKA_2016 = [AircraftFilter("650","787","733","883","952","755")]
     F_KAIKKI_KONEET_2016 = [AircraftFilter("TOW","650","787","733","883","952","755")]
     F_PURSIK_2016 = [SinceDateFilter(ctx, ID_PK_2016)]
     F_KURSSIK_2016 = [SinceDateFilter(ctx, ID_KK_2016)]
+    
+     # Added 2017-10-09:
+    F_2017 = [PeriodFilter(Period.full_year(2017))]
+    F_PURTSIKKA_2017 = [AircraftFilter("650","787","733","883","952")]
+    F_KAIKKI_KONEET_2017 = [AircraftFilter("TOW","650","787","733","883","952")]
+    F_PURSIK_2017 = [SinceDateFilter(ctx, ID_PK_2017)]
+    F_KURSSIK_2017 = [SinceDateFilter(ctx, ID_KK_2017)]
 
-    F_2016 = [PeriodFilter(Period.full_year(2016))]
-
+    # Added 2018-11-07:
+    F_2018 = [PeriodFilter(Period.full_year(2018))]
+    F_PURTSIKKA_2018 = [AircraftFilter("650","787","733","883","952")]
+    F_KAIKKI_KONEET_2018 = [AircraftFilter("TOW","650","787","733","883","952")]
+    F_PURSIK_2018 = [SinceDateFilter(ctx, ID_PK_2018)]
+    F_KURSSIK_2018 = [SinceDateFilter(ctx, ID_KK_2018)]
+    
 
     def pursi_rule(base_filters, price, kurssi_price = 0, package_price = 0):
         return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
@@ -96,7 +123,18 @@ def make_rules(ctx=BillingContext()):
                           FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK_2016, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
                           FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
 
+    # Added 2017-10-09:
+    def pursi_rule_2017(base_filters, price, kurssi_price = 0, package_price = 0):
+        return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK_2017, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
+                          FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK_2017, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
+                          FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
 
+    # Added 2018-11-07:
+    def pursi_rule_2018(base_filters, price, kurssi_price = 0, package_price = 0):
+        return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK_2018, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
+                          FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK_2018, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
+                          FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
+                          
     rules_past = [
         # Normal simple events from the past are OK
         SimpleRule(F_PAST)
@@ -205,10 +243,76 @@ def make_rules(ctx=BillingContext()):
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2016 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
 
+    rules_2017 = [
+        FlightRule(171, ACCT_DDS, F_DDS + F_2017),
+        # Variable price for TOW in the second period, based on purpose of flight
+        FirstRule([FlightRule(124, ACCT_TOWING, F_TOW + F_2017 + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(104, ACCT_TOW, F_TOW + F_2017)
+               ]),
+
+        pursi_rule_2017(F_2017 + F_FK, 15),
+        pursi_rule_2017(F_2017 + F_FM, 25, 10),
+        pursi_rule_2017(F_2017 + F_FQ, 25),
+        pursi_rule_2017(F_2017 + F_FY, 32, 32, 10),
+        pursi_rule_2017(F_2017 + F_DG, 40, 10, 10),
+
+        # Koululentomaksu
+        FlightRule(lambda ev: 5, ACCT_PURSI_INSTRUCTION, F_PURTSIKKA_2017 + F_2017 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
+
+        CappedRule(ID_KM_2017, 90, ctx,
+                   AllRules([CappedRule(ID_KM_P_2017, 70, ctx,
+                                         FlightRule(10, ACCT_KALUSTO, F_2017 + F_PURTSIKKA_2017,
+                                                         u"Kalustomaksu, %(aircraft)s, %(duration)d min")),
+                              CappedRule(ID_KM_M_2017, 70, ctx,
+                                         FlightRule(10, ACCT_KALUSTO, F_2017 + F_MOTTI,
+                                                         u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
+
+        # Normal simple events
+        FirstRule([SetDateRule(ID_PK_2017, ctx, SimpleRule(F_2017 + [ItemFilter(u".*[pP]ursikönttä.*")])),
+                   SetDateRule(ID_KK_2017, ctx, SimpleRule(F_2017 + [ItemFilter(u".*[kK]urssikönttä.*")])),
+                   SimpleRule(F_2017)]),
+
+        FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2017 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
+    ]
+    
+    # Added 2018-11-07:
+    rules_2018 = [
+        FlightRule(171, ACCT_DDS, F_DDS + F_2018),
+        # Variable price for TOW in the second period, based on purpose of flight
+        FirstRule([FlightRule(129, ACCT_TOWING, F_TOW + F_2018 + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(129, ACCT_TOW, F_TOW + F_2018)
+               ]),
+
+        pursi_rule_2018(F_2018 + F_FK, 15),
+        pursi_rule_2018(F_2018 + F_FM, 25, 10),
+        pursi_rule_2018(F_2018 + F_FQ, 25),
+        pursi_rule_2018(F_2018 + F_FY, 32, 32, 10),
+        pursi_rule_2018(F_2018 + F_DG, 40, 10, 10),
+
+        # Koululentomaksu
+        FlightRule(lambda ev: 5, ACCT_PURSI_INSTRUCTION, F_PURTSIKKA_2018 + F_2018 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
+
+        CappedRule(ID_KM_2018, 90, ctx,
+                   AllRules([CappedRule(ID_KM_P_2018, 70, ctx,
+                                         FlightRule(10, ACCT_KALUSTO, F_2018 + F_PURTSIKKA_2018,
+                                                         u"Kalustomaksu, %(aircraft)s, %(duration)d min")),
+                              CappedRule(ID_KM_M_2018, 70, ctx,
+                                         FlightRule(10, ACCT_KALUSTO, F_2018 + F_MOTTI,
+                                                         u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
+
+        # Normal simple events
+        FirstRule([SetDateRule(ID_PK_2018, ctx, SimpleRule(F_2018 + [ItemFilter(u".*[pP]ursikönttä.*")])),
+                   SetDateRule(ID_KK_2018, ctx, SimpleRule(F_2018 + [ItemFilter(u".*[kK]urssikönttä.*")])),
+                   SimpleRule(F_2018)]),
+
+        FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2018 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
+    ]
+    
     return rules_past + [SetLedgerYearRule(AllRules(rules_2014), 2014),
                          SetLedgerYearRule(AllRules(rules_2015), 2015),
-                         SetLedgerYearRule(AllRules(rules_2016), 2016)]
-
+                         SetLedgerYearRule(AllRules(rules_2016), 2016),
+                         SetLedgerYearRule(AllRules(rules_2017), 2017),
+                         SetLedgerYearRule(AllRules(rules_2018), 2018)]
 
 
 def events_to_lines(events, rules):

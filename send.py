@@ -36,6 +36,23 @@ def send(conf, email_addr, msg_lines):
 
     conn.quit()
 
+  
+    
+def get_connection(conf):
+    # Function for establishing and returning an smtp connection
+    # to given host
+    smtps_host = conf["smtps_host"]
+
+    conn = smtplib.SMTP_SSL(smtps_host)
+    conn.ehlo_or_helo_if_needed()
+        
+    smtp_user = conf["smtp_user"]
+    smtp_password = conf["smtp_password"]
+    conn.login(smtp_user, smtp_password)
+    
+    return conn
+    
+    
 def read_config(conf_file_name):
     return json.load(open(conf_file_name, "rb"))
     
@@ -45,6 +62,9 @@ def main():
         conf = read_config(args[0])
         email_file = conf["email_file"]
 
+        # Get SMTP connection:
+        conn = get_connection(conf)
+        
         dir_name = args[1]
         for fname in os.listdir(dir_name):
             if fname.endswith(".txt"):
@@ -61,7 +81,10 @@ def main():
                     msg = make_msg(conf["sender_address"], recipient_addr, title, body)
                     while True:
                         try:
-                            send(conf, recipient_addr, msg.as_string())
+                            #send(conf, recipient_addr, msg.as_string()) # Replaced with send_v2:
+                            #send_v2(conn, conf, recipient_addr, msg.as_string())
+                            # TBD: check if conn is connected
+                            conn.sendmail(conf["sender_address"], recipient_addr, msg.as_string())
                             print >> sys.stderr, "Sent", recipient_id, recipient_addr
                             break # No need to retry
                         except smtplib.SMTPRecipientsRefused, e:
@@ -80,6 +103,10 @@ def main():
                         time.sleep(60)
                 else:
                     print >> sys.stderr, "No e-mail address for", recipient_id
+                   
+        # End SMTP connection
+        conn.quit()
+        
     else:
         print "Usage: send.py conf-file recipient-id"
     
