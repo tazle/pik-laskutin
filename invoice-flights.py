@@ -333,7 +333,7 @@ def make_rules(ctx=BillingContext()):
     rules_2019 = [
         FlightRule(171, ACCT_DDS, F_DDS + F_2019),
         # Variable price for TOW in the second period, based on purpose of flight
-        FirstRule([FlightRule(129, ACCT_TOWING, F_TOW + F_2019 + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+        FirstRule([FlightRule(129, ACCT_TOWING, F_TOW + F_2019), # + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"
                    FlightRule(129, ACCT_TOW, F_TOW + F_2019)
                ]),
 

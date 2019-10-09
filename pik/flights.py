@@ -23,7 +23,7 @@ class Flight(object):
         self.duration = duration # in minutes
         self.invoicing_comment = invoicing_comment
         #self.extra_comments = extra_comments
-        #self.transfer_tow = transfer_tow
+        self.transfer_tow = False # This was commented, but there attributeError is generated without this
         #self.deleted = False
 
     def __unicode__(self):
