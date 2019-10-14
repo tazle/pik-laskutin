@@ -11,6 +11,7 @@ import datetime as dt
 import re
 import numbers
 import sys
+import decimal
 
 class BaseRule(object):
     # Don't allow multiple ledger accounts for lines produced by a rule by default
@@ -242,7 +243,7 @@ class CappedRule(BaseRule):
         """
         self.variable_id = variable_id
         self.inner_rule = inner_rule
-        self.cap_price = cap_price
+        self.cap_price = decimal.Decimal(cap_price)
         self.context = context
 
     def invoice(self, event):

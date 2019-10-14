@@ -16,6 +16,7 @@ import os
 from itertools import izip, count
 import unicodedata
 import math
+import decimal
 
 def make_rules(ctx=BillingContext()):
     ACCT_PURSI_KEIKKA = 3220
@@ -211,10 +212,13 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
     hansa_txns = []
     hansa_txn_id_gen = count(conf["hansa_first_txn_id"])
     for invoice in invoices:
+        DEBUG = invoice.account_id == "114983"
         lines_by_rule = defaultdict(lambda: [])
         for line in invoice.lines:
             if hansa_txn_date_filter(line):
                 lines_by_rule[line.rule].append(line)
+            elif DEBUG:
+                print >> sys.stderr, "Discarding line because of date filter: %s" %line
 
         for (rule, lineset) in lines_by_rule.iteritems():
             # Check all lines have same sign
@@ -234,14 +238,25 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
             extract_lai = lambda x: x.ledger_account_id
             for (ledger_account_id, lines) in groupby(sorted(lineset, key=extract_lai), key=extract_lai):
                 lines = list(lines)
+                if DEBUG:
+                    print >> sys.stderr, u"Ledger account id:", ledger_account_id, len(lines)
+                lines = list(lines)
                 if not ledger_account_id:
+                    if DEBUG:
+                        print >> sys.stderr, u"Not going into Hansa:"
+                        for line in lines:
+                            print >> sys.stderr, unicode(line)
                     continue
             
                 total_price = sum(line.price for line in lines if line.ledger_account_id)
                 if total_price == 0:
+                    if DEBUG:
+                        print >> sys.stderr, "Not writing hansa line for zero-sum line on account", ledger_account_id
                     continue
             
                 title = os.path.commonprefix([line.item for line in lines])
+                if DEBUG:
+                    print >> sys.stderr, "Writing hansa line for account", ledger_account_id, "->", total_price
                 if total_price > 0:
                     member_line = SimpleHansaRow(1422, title, debit=total_price)
                     club_line = SimpleHansaRow(ledger_account_id, title, credit=total_price)
@@ -292,6 +307,12 @@ def make_event_validator(pik_ids, external_ids):
         return event
     return event_validator
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+        return json.JSONEncoder.default(self, obj)
+
 def read_pik_ids(fnames):
     result = []
     for fname in fnames:
@@ -310,7 +331,7 @@ if __name__ == '__main__':
     if "context_file_in" in conf:
         context_file = conf["context_file_in"]
         if os.path.isfile(context_file):
-            ctx = BillingContext.from_json(json.load(open(context_file, "r")))
+            ctx = BillingContext.from_json(json.load(open(context_file, "r"), parse_float=decimal.Decimal))
     rules = make_rules(ctx)
 
     for fname in conf['event_files']:
@@ -358,7 +379,7 @@ if __name__ == '__main__':
     write_total_csv(invoices, total_csv_fname)
     write_row_csv(invoices, row_csv_fname_template)
     if "context_file_out" in conf:
-        json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
+        json.dump(ctx.to_json(), open(conf["context_file_out"], "w"), cls=DecimalEncoder)
 
     machine_readable_invoices = [invoice.to_json() for invoice in invoices]
 
