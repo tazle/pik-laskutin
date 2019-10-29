@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 from pik.flights import Flight
-from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter, SetLedgerYearRule
+from pik.rules import FlightRule, AircraftFilter, PeriodFilter, CappedRule, AllRules, FirstRule, SetDateRule, SimpleRule, SinceDateFilter, ItemFilter, PurposeFilter, InvoicingChargeFilter, TransferTowFilter, NegationFilter, DebugRule, flightFilter, eventFilter, SetLedgerYearRule, PositivePriceFilter, NegativePriceFilter
 from pik.util import Period, format_invoice, parse_iso8601_date
 from pik.billing import BillingContext, Invoice
 from pik.event import SimpleEvent
@@ -16,6 +16,7 @@ import os
 from itertools import izip, count
 import unicodedata
 import math
+import decimal
 
 def make_rules(ctx=BillingContext()):
     ACCT_PURSI_KEIKKA = 3220
@@ -193,7 +194,8 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2014, ctx, SimpleRule(F_2014 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2014)]),
+                   SimpleRule(F_2014 + [PositivePriceFilter()]),
+                   SimpleRule(F_2014 + [NegativePriceFilter()])]),
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2014 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s"),
     ]
@@ -226,7 +228,9 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2015, ctx, SimpleRule(F_2015 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2015, ctx, SimpleRule(F_2015 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2015)]),
+                   SimpleRule(F_2015 + [PositivePriceFilter()]),
+                   SimpleRule(F_2015 + [NegativePriceFilter()])]),
+
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2015 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
@@ -419,17 +423,20 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
     hansa_txns = []
     hansa_txn_id_gen = count(conf["hansa_first_txn_id"])
     for invoice in invoices:
+        DEBUG = invoice.account_id == "114983"
         lines_by_rule = defaultdict(lambda: [])
         for line in invoice.lines:
             if hansa_txn_date_filter(line):
                 lines_by_rule[line.rule].append(line)
+            elif DEBUG:
+                print >> sys.stderr, "Discarding line because of date filter: %s" %line
 
         for (rule, lineset) in lines_by_rule.iteritems():
             # Check all lines have same sign
-            signs = [math.copysign(line.price, 1) for line in lineset]
+            signs = [math.copysign(1, line.price) for line in lineset]
             
             if not (all(sign >= 0 for sign in signs) or all(sign <= 0 for sign in signs)):
-                print >> sys.stderr, "Inconsistent signs:", lineset, signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
+                print >> sys.stderr, "Inconsistent signs:", unicode(lineset), signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
 
             # Check all lines have same ledger account, excluding lines that don't go
             # into ledger via this process (they have None as ledger_account_id)
@@ -442,14 +449,25 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
             extract_lai = lambda x: x.ledger_account_id
             for (ledger_account_id, lines) in groupby(sorted(lineset, key=extract_lai), key=extract_lai):
                 lines = list(lines)
+                if DEBUG:
+                    print >> sys.stderr, u"Ledger account id:", ledger_account_id, len(lines)
+                lines = list(lines)
                 if not ledger_account_id:
+                    if DEBUG:
+                        print >> sys.stderr, u"Not going into Hansa:"
+                        for line in lines:
+                            print >> sys.stderr, unicode(line)
                     continue
             
                 total_price = sum(line.price for line in lines if line.ledger_account_id)
                 if total_price == 0:
+                    if DEBUG:
+                        print >> sys.stderr, "Not writing hansa line for zero-sum line on account", ledger_account_id
                     continue
             
                 title = os.path.commonprefix([line.item for line in lines])
+                if DEBUG:
+                    print >> sys.stderr, "Writing hansa line for account", ledger_account_id, "->", total_price
                 if total_price > 0:
                     member_line = SimpleHansaRow(1422, title, debit=total_price)
                     club_line = SimpleHansaRow(ledger_account_id, title, credit=total_price)
@@ -468,7 +486,7 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
 
     with open(os.path.join(out_dir, "hansa-export-" + conf["invoice_date"] + ".txt"), "wb") as f:
         for txn in hansa_txns:
-            f.write(unicodedata.normalize("NFC", txn.hansaformat()).encode("iso-8859-1"))
+            f.write(unicodedata.normalize("NFC", txn.hansaformat()).encode("iso-8859-15"))
 
 def write_total_csv(invoices, fname):
     import csv
@@ -500,6 +518,12 @@ def make_event_validator(pik_ids, external_ids):
         return event
     return event_validator
 
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+        return json.JSONEncoder.default(self, obj)
+
 def read_pik_ids(fnames):
     result = []
     for fname in fnames:
@@ -518,7 +542,7 @@ if __name__ == '__main__':
     if "context_file_in" in conf:
         context_file = conf["context_file_in"]
         if os.path.isfile(context_file):
-            ctx = BillingContext.from_json(json.load(open(context_file, "r")))
+            ctx = BillingContext.from_json(json.load(open(context_file, "r"), parse_float=decimal.Decimal))
     rules = make_rules(ctx)
 
     for fname in conf['event_files']:
@@ -566,7 +590,7 @@ if __name__ == '__main__':
     write_total_csv(invoices, total_csv_fname)
     write_row_csv(invoices, row_csv_fname_template)
     if "context_file_out" in conf:
-        json.dump(ctx.to_json(), open(conf["context_file_out"], "w"))
+        json.dump(ctx.to_json(), open(conf["context_file_out"], "w"), cls=DecimalEncoder)
 
     machine_readable_invoices = [invoice.to_json() for invoice in invoices]
 
