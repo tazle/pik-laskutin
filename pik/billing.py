@@ -98,6 +98,7 @@ class InvoiceLine(object):
                            None,
                            None)
 
+
 class BillingContext(object):
     """
     Provides numeric and string variables for accounts

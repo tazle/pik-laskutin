@@ -263,7 +263,8 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2016, ctx, SimpleRule(F_2016 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2016, ctx, SimpleRule(F_2016 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2016)]),
+                   SimpleRule(F_2016 + [PositivePriceFilter()]),
+                   SimpleRule(F_2016 + [NegativePriceFilter()])]),
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2016 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
@@ -295,7 +296,8 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2017, ctx, SimpleRule(F_2017 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2017, ctx, SimpleRule(F_2017 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2017)]),
+                   SimpleRule(F_2017 + [PositivePriceFilter()]),
+                   SimpleRule(F_2017 + [NegativePriceFilter()])]),
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2017 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
@@ -328,7 +330,8 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2018, ctx, SimpleRule(F_2018 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2018, ctx, SimpleRule(F_2018 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2018)]),
+                   SimpleRule(F_2018 + [PositivePriceFilter()]),
+                   SimpleRule(F_2018 + [NegativePriceFilter()])]),
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2018 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
@@ -362,7 +365,8 @@ def make_rules(ctx=BillingContext()):
         # Normal simple events
         FirstRule([SetDateRule(ID_PK_2019, ctx, SimpleRule(F_2019 + [ItemFilter(u".*[pP]ursikönttä.*")])),
                    SetDateRule(ID_KK_2019, ctx, SimpleRule(F_2019 + [ItemFilter(u".*[kK]urssikönttä.*")])),
-                   SimpleRule(F_2019)]),
+                   SimpleRule(F_2019 + [PositivePriceFilter()]),
+                   SimpleRule(F_2019 + [NegativePriceFilter()])]),
 
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2019 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
@@ -434,9 +438,14 @@ def write_hansa_export_file(valid_invoices, invalid_invoices, conf):
         for (rule, lineset) in lines_by_rule.iteritems():
             # Check all lines have same sign
             signs = [math.copysign(1, line.price) for line in lineset]
-            
+
             if not (all(sign >= 0 for sign in signs) or all(sign <= 0 for sign in signs)):
-                print >> sys.stderr, "Inconsistent signs:", unicode(lineset), signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
+                
+                print("\n-------------")
+                for line_item in lineset:
+                    print(line_item.item.encode("utf-8") + ": " + str(line_item.price))
+                    
+                print >> sys.stderr, "Inconsistent signs:", (str(item.to_json()) for item in lineset), signs, all(sign >= 0 for sign in signs), all(sign <= 0 for sign in signs)
 
             # Check all lines have same ledger account, excluding lines that don't go
             # into ledger via this process (they have None as ledger_account_id)
