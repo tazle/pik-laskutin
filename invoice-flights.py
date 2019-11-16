@@ -304,8 +304,7 @@ def make_rules(ctx=BillingContext()):
     
     # Added 2018-11-07:
     rules_2018 = [
-        FlightRule(171, ACCT_DDS, F_DDS + F_2018),
-        # Variable price for TOW in the second period, based on purpose of flight
+        # Variable price for TOW, based on purpose of flight
         FirstRule([FlightRule(129, ACCT_TOWING, F_TOW + F_2018 + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
                    FlightRule(129, ACCT_TOW, F_TOW + F_2018)
                ]),
@@ -338,10 +337,24 @@ def make_rules(ctx=BillingContext()):
     
     # Added 2019-10-08:
     rules_2019 = [
-        FlightRule(171, ACCT_DDS, F_DDS + F_2019),
-        # Variable price for TOW in the second period, based on purpose of flight
-        FirstRule([FlightRule(129, ACCT_TOWING, F_TOW + F_2019), # + [TransferTowFilter()], u"Siirtohinaus, %(duration)d min"
-                   FlightRule(129, ACCT_TOW, F_TOW + F_2019)
+    
+        #FlightRule(129, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2019, 1, 1), dt.date(2019, 4, 6)))]),
+        
+        # TOW flights 2019-01-01 ... 2019-04-06. Same price for transfer tows and normal flights:
+        FirstRule([FlightRule(129, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2019, 1, 1), dt.date(2019, 4, 6))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+           FlightRule(129, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2019, 1, 1), dt.date(2019, 4, 6)))]) 
+       ]),
+        
+        # TOW flights 2019-04-07 ... 2019-05-31. Same price (101) for transfer tows and normal flights:
+        # First, check if TOW flight is transfer tow, then fallback to normal TOW flight:
+        FirstRule([FlightRule(101, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2019, 4, 7), dt.date(2019, 5, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(101, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2019, 4, 7), dt.date(2019, 5, 31)))]) 
+               ]),
+        
+        # TOW flights 2019-06-01 onwards, as of 2019-11-16. Same price (102) for transfer tows and normal flights:
+        # First, check if TOW flight is transfer tow, then fallback to normal TOW flight:
+        FirstRule([FlightRule(102, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2019, 6, 1), dt.date(2019, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(102, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2019, 6, 1), dt.date(2019, 12, 31)))]) 
                ]),
 
         pursi_rule_2019(F_2019 + F_FK, 15),
