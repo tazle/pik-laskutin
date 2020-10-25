@@ -23,6 +23,7 @@ def make_rules(ctx=BillingContext()):
     ACCT_TOW = 3130
     ACCT_DDS = 3101
     ACCT_CAO = 3100
+    ACCT_1037 = 3150 # Lentotuntitulot jäseniltä
     ACCT_TOWING = 3170 # Muut lentotoiminnan tulot
     ACCT_PURSI_INSTRUCTION = 3470 # Muut tulot koulutustoiminnasta
     ACCT_KALUSTO = 3010
@@ -90,9 +91,10 @@ def make_rules(ctx=BillingContext()):
     F_DDS = [AircraftFilter("DDS")]
     F_CAO = [AircraftFilter("CAO")]
     F_TOW = [AircraftFilter("TOW")]
-    F_MOTTI = [AircraftFilter("DDS","CAO","TOW")]
-    F_PURTSIKKA = [AircraftFilter("650","787","733","883","952")]
-    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","650","787","733","883","952")]
+    F_1037 = [AircraftFilter("1037")]
+    F_MOTTI = [AircraftFilter("DDS","CAO","TOW","1037")]
+    F_PURTSIKKA = [AircraftFilter("650","787","733","883","952","1035")]
+    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","1037","650","787","733","883","952","1035")]
     F_PURSIK = [SinceDateFilter(ctx, ID_PK_2014)]
     F_KURSSIK = [SinceDateFilter(ctx, ID_KK_2014)]
     F_LASKUTUSLISA = [InvoicingChargeFilter()]
@@ -133,7 +135,7 @@ def make_rules(ctx=BillingContext()):
     # Added 2020-03-15:
     F_2020 = [PeriodFilter(Period.full_year(2020))]
     F_PURTSIKKA_2020 = [AircraftFilter("650","787","733","883","952","1035")]
-    F_KAIKKI_KONEET_2020 = [AircraftFilter("TOW","650","787","733","883","952","1035")] # HUOM: Lisää mopu, kun se tulee riviin
+    F_KAIKKI_KONEET_2020 = [AircraftFilter("TOW","1037","650","787","733","883","952","1035")]
     F_PURSIK_2020 = [SinceDateFilter(ctx, ID_PK_2020)]
     F_KURSSIK_2020 = [SinceDateFilter(ctx, ID_KK_2020)]
 
@@ -409,11 +411,28 @@ def make_rules(ctx=BillingContext()):
     rules_2020 = [
     
        
-        # TOW flights 2020-01-01 onwards, (as of 2019-11-16). Same price (102) for transfer tows and normal flights:
+        # OH-TOW variable hourly prices:
         # First, check if TOW flight is transfer tow, then fallback to normal TOW flight:
-        FirstRule([FlightRule(102, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2020, 1, 1), dt.date(2020, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
-                   FlightRule(102, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2020, 1, 1), dt.date(2020, 12, 31)))]) 
+        FirstRule([FlightRule(102, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2020, 1, 1), dt.date(2020, 3, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(102, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2020, 1, 1), dt.date(2020, 3, 31)))])
+                ]),
+        # 2020-04-01 - 2020-04-30, 94:
+        FirstRule([FlightRule(94, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2020, 4, 1), dt.date(2020, 4, 30))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(94, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2020, 4, 1), dt.date(2020, 4, 30)))])
+                ]),
+        # 2020-05-01 - 2020-07-31, 90:
+        FirstRule([FlightRule(90, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2020, 5, 1), dt.date(2020, 7, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(90, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2020, 5, 1), dt.date(2020, 7, 31)))])
+                ]),
+        # 2020-08-01 -> 97:
+        FirstRule([FlightRule(97, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2020, 8, 1), dt.date(2020, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(97, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2020, 8, 1), dt.date(2020, 12, 31)))])                   
                ]),
+
+
+        # OH-1037:
+        FlightRule(95, ACCT_1037, F_1037 + F_2020),
+
 
         pursi_rule_2020(F_2020 + F_FK, 15),
         pursi_rule_2020(F_2020 + F_FM, 25, 10),
