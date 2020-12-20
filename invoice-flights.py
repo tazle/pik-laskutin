@@ -24,6 +24,7 @@ def make_rules(ctx=BillingContext()):
     ACCT_DDS = 3101
     ACCT_CAO = 3100
     ACCT_1037 = 3150 # Lentotuntitulot jäseniltä
+    ACCT_1037_OPEALE = 3150 # Lentotuntitulot jäseniltä
     ACCT_TOWING = 3170 # Muut lentotoiminnan tulot
     ACCT_PURSI_INSTRUCTION = 3470 # Muut tulot koulutustoiminnasta
     ACCT_KALUSTO = 3010
@@ -92,9 +93,10 @@ def make_rules(ctx=BillingContext()):
     F_CAO = [AircraftFilter("CAO")]
     F_TOW = [AircraftFilter("TOW")]
     F_1037 = [AircraftFilter("1037")]
-    F_MOTTI = [AircraftFilter("DDS","CAO","TOW","1037")]
+    F_1037_OPEALE = [AircraftFilter("1037-opeale")]
+    F_MOTTI = [AircraftFilter("DDS","CAO","TOW","1037","1037-opeale")]
     F_PURTSIKKA = [AircraftFilter("650","787","733","883","952","1035")]
-    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","1037","650","787","733","883","952","1035")]
+    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","1037","1037-opeale","650","787","733","883","952","1035")]
     F_PURSIK = [SinceDateFilter(ctx, ID_PK_2014)]
     F_KURSSIK = [SinceDateFilter(ctx, ID_KK_2014)]
     F_LASKUTUSLISA = [InvoicingChargeFilter()]
@@ -135,7 +137,7 @@ def make_rules(ctx=BillingContext()):
     # Added 2020-03-15:
     F_2020 = [PeriodFilter(Period.full_year(2020))]
     F_PURTSIKKA_2020 = [AircraftFilter("650","787","733","883","952","1035")]
-    F_KAIKKI_KONEET_2020 = [AircraftFilter("TOW","1037","650","787","733","883","952","1035")]
+    F_KAIKKI_KONEET_2020 = [AircraftFilter("TOW","1037","1037-opeale","650","787","733","883","952","1035")]
     F_PURSIK_2020 = [SinceDateFilter(ctx, ID_PK_2020)]
     F_KURSSIK_2020 = [SinceDateFilter(ctx, ID_KK_2020)]
 
@@ -432,6 +434,8 @@ def make_rules(ctx=BillingContext()):
 
         # OH-1037:
         FlightRule(95, ACCT_1037, F_1037 + F_2020),
+        # OH-1037 opeale
+        FlightRule(55, ACCT_1037_OPEALE, F_1037_OPEALE + F_2020),
 
 
         pursi_rule_2020(F_2020 + F_FK, 15),
