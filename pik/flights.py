@@ -72,7 +72,7 @@ class Flight(object):
                 raise
 
 def _flight_has_different_tz(locations):
-    same_tz = ["ef", "ee", "zz", "pirtti"]
+    same_tz = ["ef", "ee", "zz", "pirtti", "ey"]
     for _loc in locations:
         if not _loc:
             continue
