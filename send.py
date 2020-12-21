@@ -6,6 +6,7 @@ import smtplib
 import os
 import time
 from email.mime.text import MIMEText
+import getpass
 
 def read_recipient_file(fname, recipient_id):
     with open(fname, "rb") as file:
@@ -29,7 +30,8 @@ def send(conf, email_addr, msg_lines):
     conn.ehlo_or_helo_if_needed()
         
     smtp_user = conf["smtp_user"]
-    smtp_password = conf["smtp_password"]
+    #smtp_password = conf["smtp_password"]
+    smtp_password = getpass.getpass()
     conn.login(smtp_user, smtp_password)
 
     conn.sendmail(conf["sender_address"], email_addr, msg_lines)
@@ -47,7 +49,9 @@ def get_connection(conf):
     conn.ehlo_or_helo_if_needed()
         
     smtp_user = conf["smtp_user"]
-    smtp_password = conf["smtp_password"]
+    #smtp_password = conf["smtp_password"]
+    smtp_password = getpass.getpass()
+
     conn.login(smtp_user, smtp_password)
     
     return conn
