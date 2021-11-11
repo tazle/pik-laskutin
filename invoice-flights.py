@@ -62,6 +62,11 @@ def make_rules(ctx=BillingContext()):
     ID_KM_P_2020 = u"kausimaksu_pursi_2020"
     ID_KM_M_2020 = u"kausimaksu_motti_2020"
     
+    # Added 2021-11-11:
+    ID_KM_2021 = u"kausimaksu_tot_2021"
+    ID_KM_P_2021 = u"kausimaksu_pursi_2021"
+    ID_KM_M_2021 = u"kausimaksu_motti_2021"
+
     ID_PK_2014 = u"pursikönttä_2014"
     ID_PK_2015 = u"pursikönttä_2015"
     ID_PK_2016 = u"pursikönttä_2016"
@@ -69,6 +74,7 @@ def make_rules(ctx=BillingContext()):
     ID_PK_2018 = u"pursikönttä_2018" # Added 2018-11-07
     ID_PK_2019 = u"pursikönttä_2019" # Added 2019-10-08
     ID_PK_2020 = u"pursikönttä_2020" # Added 2020-03-15
+    ID_PK_2021 = u"pursikönttä_2021" # Added 2021-11-11
 
     ID_KK_2014 = u"kurssikönttä_2014"
     ID_KK_2015 = u"kurssikönttä_2015"
@@ -77,6 +83,7 @@ def make_rules(ctx=BillingContext()):
     ID_KK_2018 = u"kurssikönttä_2018" # Added 2018-11-07
     ID_KK_2019 = u"kurssikönttä_2019" # Added 2019-10-08
     ID_KK_2020 = u"kurssikönttä_2020" # Added 2020-03-15
+    ID_KK_2021 = u"kurssikönttä_2021" # Added 2021-11-11. Notice that kurssikönttä was discontinued starting 2021
 
     F_PAST = [PeriodFilter(Period(dt.date(2010,1,1), dt.date(2013,12,31)))]
 
@@ -94,9 +101,15 @@ def make_rules(ctx=BillingContext()):
     F_TOW = [AircraftFilter("TOW")]
     F_1037 = [AircraftFilter("1037")]
     F_1037_OPEALE = [AircraftFilter("1037-opeale")]
+    F_FK_KURSSIALE = [AircraftFilter("650-kurssiale")]
+    F_FM_KURSSIALE = [AircraftFilter("787-kurssiale")]
+    F_FQ_KURSSIALE = [AircraftFilter("733-kurssiale")]
+    F_FY_KURSSIALE = [AircraftFilter("883-kurssiale")]
+    F_FI_KURSSIALE = [AircraftFilter("1035-kurssiale")]
+    F_DG_KURSSIALE = [AircraftFilter("952-kurssiale")]
     F_MOTTI = [AircraftFilter("DDS","CAO","TOW","1037","1037-opeale")]
-    F_PURTSIKKA = [AircraftFilter("650","787","733","883","952","1035")]
-    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","1037","1037-opeale","650","787","733","883","952","1035")]
+    F_PURTSIKKA = [AircraftFilter("650","787","733","883","952","1035","650-kurssiale","787-kurssiale","733-kurssiale","883-kurssiale","1035-kurssiale","952-kurssiale")]
+    F_KAIKKI_KONEET = [AircraftFilter("DDS","CAO","TOW","1037","1037-opeale","650","787","733","883","952","1035","650-kurssiale","787-kurssiale","733-kurssiale","883-kurssiale","1035-kurssiale","952-kurssiale")]
     F_PURSIK = [SinceDateFilter(ctx, ID_PK_2014)]
     F_KURSSIK = [SinceDateFilter(ctx, ID_KK_2014)]
     F_LASKUTUSLISA = [InvoicingChargeFilter()]
@@ -141,6 +154,13 @@ def make_rules(ctx=BillingContext()):
     F_PURSIK_2020 = [SinceDateFilter(ctx, ID_PK_2020)]
     F_KURSSIK_2020 = [SinceDateFilter(ctx, ID_KK_2020)]
 
+    # Added 2021-11-11:
+    F_2021 = [PeriodFilter(Period.full_year(2021))]
+    F_PURTSIKKA_2021 = [AircraftFilter("650","787","733","883","952","1035","650-kurssiale","787-kurssiale","733-kurssiale","883-kurssiale","1035-kurssiale","952-kurssiale")]
+    F_KAIKKI_KONEET_2021 = [AircraftFilter("TOW","1037","1037-opeale","650","787","733","883","952","1035","650-kurssiale","787-kurssiale","733-kurssiale","883-kurssiale","1035-kurssiale","952-kurssiale")]
+    F_PURSIK_2021 = [SinceDateFilter(ctx, ID_PK_2021)]
+    F_KURSSIK_2021 = [SinceDateFilter(ctx, ID_KK_2021)]
+
 
 
     def pursi_rule(base_filters, price, kurssi_price = 0, package_price = 0):
@@ -180,6 +200,12 @@ def make_rules(ctx=BillingContext()):
     def pursi_rule_2020(base_filters, price, kurssi_price = 0, package_price = 0):
         return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK_2020, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
                           FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK_2020, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
+                          FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
+
+    # Added 2021-11-11:
+    def pursi_rule_2021(base_filters, price, kurssi_price = 0, package_price = 0):
+        return FirstRule([FlightRule(package_price, ACCT_PURSI_KEIKKA, base_filters + F_PURSIK_2021, u"Lento, pursiköntällä, %(aircraft)s, %(duration)d min"),
+                          FlightRule(kurssi_price, ACCT_PURSI_KEIKKA, base_filters + F_KURSSIK_2021, u"Lento, kurssiköntällä, %(aircraft)s, %(duration)d min, %(purpose)s"),
                           FlightRule(price, ACCT_PURSI_KEIKKA, base_filters)])
 
     rules_past = [
@@ -465,6 +491,64 @@ def make_rules(ctx=BillingContext()):
         FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2020 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
     ]
     
+
+   # Added 2020-11-11:
+    rules_2021 = [
+    
+       
+        # OH-TOW variable hourly prices:
+        # First, check if TOW flight is transfer tow, then fallback to normal TOW flight:
+        # 2020-08-01 -> 97:
+        FirstRule([FlightRule(97, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2021, 1, 1), dt.date(2021, 2, 28))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(97, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2021, 1, 1), dt.date(2021, 2, 28)))])                   
+               ]),
+        # 2021-03-01 -> 104
+        FirstRule([FlightRule(104, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2021, 3, 1), dt.date(2021, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+                   FlightRule(104, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2021, 3, 1), dt.date(2021, 12, 31)))])                   
+               ]),
+
+        # OH-1037:
+        FlightRule(95, ACCT_1037, F_1037 + [PeriodFilter(Period(dt.date(2021, 1, 1), dt.date(2021, 3, 24)))]),
+        FlightRule(96, ACCT_1037, F_1037 + [PeriodFilter(Period(dt.date(2021, 3, 25), dt.date(2021, 12, 31)))]),
+
+        # OH-1037 opeale
+        FlightRule(55, ACCT_1037_OPEALE, F_1037_OPEALE + F_2021),
+
+
+        pursi_rule_2021(F_2021 + F_FK, 15),
+        pursi_rule_2021(F_2021 + F_FM, 25, 10),
+        pursi_rule_2021(F_2021 + F_FQ, 25),
+        pursi_rule_2021(F_2021 + F_FY, 32, 32, 10),
+        pursi_rule_2021(F_2021 + F_FI, 28, 28, 5), # Notice new pursikönttä pricing, 5 e/h
+        pursi_rule_2021(F_2021 + F_DG, 40, 40, 10),
+
+        # Kurssiale prices:
+        pursi_rule_2021(F_2021 + F_FK_KURSSIALE, 10),
+        pursi_rule_2021(F_2021 + F_FM_KURSSIALE, 20, 20),
+        pursi_rule_2021(F_2021 + F_FQ_KURSSIALE, 20),
+        pursi_rule_2021(F_2021 + F_FY_KURSSIALE, 32, 32, 32),
+        pursi_rule_2021(F_2021 + F_FI_KURSSIALE, 28, 28, 28),
+        pursi_rule_2021(F_2021 + F_DG_KURSSIALE, 35, 35, 35),
+
+        # Koululentomaksu
+        FlightRule(lambda ev: 5, ACCT_PURSI_INSTRUCTION, F_PURTSIKKA_2021 + F_2021 + [PurposeFilter("KOU")], "Koululentomaksu, %(aircraft)s"),
+
+        CappedRule(ID_KM_2021, 90, ctx,
+                   AllRules([CappedRule(ID_KM_P_2021, 70, ctx,
+                                         FlightRule(10, ACCT_KALUSTO, F_2021 + F_PURTSIKKA_2021,
+                                                         u"Kalustomaksu, %(aircraft)s, %(duration)d min")),
+                              CappedRule(ID_KM_M_2021, 70, ctx,
+                                         FlightRule(10, ACCT_KALUSTO, F_2021 + F_MOTTI,
+                                                         u"Kalustomaksu, %(aircraft)s, %(duration)d min"))])),
+
+        # Normal simple events
+        FirstRule([SetDateRule(ID_PK_2021, ctx, SimpleRule(F_2021 + [ItemFilter(u".*[pP]ursikönttä.*")])),
+                   SimpleRule(F_2021 + [PositivePriceFilter()]),
+                   SimpleRule(F_2021 + [NegativePriceFilter()])]),
+
+        FlightRule(lambda ev: 2, ACCT_LASKUTUSLISA, F_KAIKKI_KONEET + F_2021 + F_LASKUTUSLISA, u"Laskutuslisä, %(aircraft)s, %(invoicing_comment)s")
+    ]
+
     
     
     return rules_past + [SetLedgerYearRule(AllRules(rules_2014), 2014),
@@ -473,7 +557,8 @@ def make_rules(ctx=BillingContext()):
                          SetLedgerYearRule(AllRules(rules_2017), 2017),
                          SetLedgerYearRule(AllRules(rules_2018), 2018),
                          SetLedgerYearRule(AllRules(rules_2019), 2019),
-                         SetLedgerYearRule(AllRules(rules_2020), 2020)]
+                         SetLedgerYearRule(AllRules(rules_2020), 2020),
+                         SetLedgerYearRule(AllRules(rules_2021), 2021)]
 
 
 def events_to_lines(events, rules):
