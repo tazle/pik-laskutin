@@ -499,11 +499,11 @@ def make_rules(ctx=BillingContext()):
         # OH-TOW variable hourly prices:
         # First, check if TOW flight is transfer tow, then fallback to normal TOW flight:
         # 2020-08-01 -> 97:
-        FirstRule([FlightRule(97, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2021, 1, 1), dt.date(2021, 2, 28))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+        FirstRule([FlightRule(97, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2021, 1, 1), dt.date(2021, 2, 28))), TransferTowFilter()], u"Siirtohinaus, TOW, %(duration)d min"),
                    FlightRule(97, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2021, 1, 1), dt.date(2021, 2, 28)))])                   
                ]),
         # 2021-03-01 -> 104
-        FirstRule([FlightRule(104, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2021, 3, 1), dt.date(2021, 12, 31))), TransferTowFilter()], u"Siirtohinaus, %(duration)d min"),
+        FirstRule([FlightRule(104, ACCT_TOWING, F_TOW + [PeriodFilter(Period(dt.date(2021, 3, 1), dt.date(2021, 12, 31))), TransferTowFilter()], u"Siirtohinaus, TOW, %(duration)d min"),
                    FlightRule(104, ACCT_TOW, F_TOW + [PeriodFilter(Period(dt.date(2021, 3, 1), dt.date(2021, 12, 31)))])                   
                ]),
 

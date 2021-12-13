@@ -5,7 +5,7 @@ import sys
 ALLOWED_PURPOSES = set(["GEO", "HAR", "HIN", "KOE", "KOU", "LAN", "LAS", "LVL", "MAT", "PALO", "RAH", "SAI", "SAR", "SII", "TAI", "TAR", "TIL", "VLL", "VOI", "YLE", "MUU", "KIL", "TYY"])
 
 class Flight(object):
-    def __init__(self, aircraft, date, account_id, takeoff_time, landing_time, purpose, duration, invoicing_comment):
+    def __init__(self, aircraft, date, account_id, takeoff_time, landing_time, purpose, duration, invoicing_comment, extra_comments="", transfer_tow=False):
         self.aircraft = aircraft
         self.date = date # date object
         self.account_id = account_id
@@ -23,7 +23,7 @@ class Flight(object):
         self.duration = duration # in minutes
         self.invoicing_comment = invoicing_comment
         #self.extra_comments = extra_comments
-        self.transfer_tow = False # This was commented, but attributeError is generated without this, so using static value
+        self.transfer_tow = transfer_tow 
         #self.deleted = False
 
     def __unicode__(self):
@@ -58,9 +58,8 @@ class Flight(object):
                 #person_count = int(row[5])
                 #n_landings = int(row[11])
                 duration = int(row[13])
-                if _flight_has_different_tz(row[6:7]):
-                    raise Exception("Flight to weird timezone, times?")
-
+                if _flight_has_different_tz(row[6:8]):
+                    raise Exception("Flight to weird timezone, times? Check ICAO codes: " + str(row[6:8]))
                 if len(row) <= 16:
                     yield Flight(row[0], date, str(row[2]), row[8], row[9], row[12], duration, row[14])
                 elif len(row) >= 17:

@@ -49,8 +49,8 @@ def get_connection(conf):
     conn.ehlo_or_helo_if_needed()
         
     smtp_user = conf["smtp_user"]
-    #smtp_password = conf["smtp_password"]
-    smtp_password = getpass.getpass()
+    smtp_password = conf["smtp_password"]
+    # smtp_password = getpass.getpass()
 
     conn.login(smtp_user, smtp_password)
     
@@ -110,6 +110,7 @@ def main():
                    
         # End SMTP connection
         conn.quit()
+        print "SMTP connection closed"
         
     else:
         print "Usage: send.py conf-file recipient-id"
