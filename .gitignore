@@ -1,3 +1,8 @@
+# Yearly files
+/2022
+/2021
+/2020
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
