@@ -11,6 +11,7 @@ import datetime as dt
 import re
 import numbers
 import sys
+import decimal
 
 class BaseRule(object):
     # Don't allow multiple ledger accounts for lines produced by a rule by default
@@ -146,6 +147,20 @@ class InvoicingChargeFilter(object):
     def __call__(self, event):
         return bool(event.invoicing_comment)
 
+class PositivePriceFilter(object):
+    """
+    Match SimpleEvents with price 0 or greater
+    """
+    def __call__(self, event):
+        return event.amount >= 0
+
+class NegativePriceFilter(object):
+    """
+    Match SimpleEvents with price less than 0
+    """
+    def __call__(self, event):
+        return event.amount < 0
+
 class FlightRule(BaseRule):
     """
     Produce one InvoiceLine from a Flight event if it matches all the
@@ -228,7 +243,7 @@ class CappedRule(BaseRule):
         """
         self.variable_id = variable_id
         self.inner_rule = inner_rule
-        self.cap_price = cap_price
+        self.cap_price = decimal.Decimal(cap_price)
         self.context = context
 
     def invoice(self, event):

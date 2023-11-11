@@ -2,6 +2,7 @@
 import collections
 import datetime as dt
 from pik.util import parse_iso8601_date
+import decimal
 
 class Invoice(object):
     def __init__(self, account_id, date, lines):
@@ -10,7 +11,8 @@ class Invoice(object):
         self.lines = lines
 
     def total(self):
-        return sum(l.price for l in self.lines)
+        with decimal.localcontext() as ctx:
+            return sum(l.price for l in self.lines).quantize(decimal.Decimal('.01'))
 
     def to_json(self):
         return {'account_id' : self.account_id,
@@ -51,7 +53,7 @@ class InvoiceLine(object):
         self.account_id = account_id # Account for which this line was generated
         self.date = date
         self.item = item
-        self.price = price
+        self.price = price if isinstance(price, decimal.Decimal) else decimal.Decimal(price).quantize(decimal.Decimal('.01'))
         self.rule = rule # Rule that generated this invoice line
         self.event = event # Event that generated this invoice line
         self.ledger_account_id = ledger_account_id # Ledger account for this event, e.g. "income from past years"
@@ -95,6 +97,7 @@ class InvoiceLine(object):
                            json_dict['price'],
                            None,
                            None)
+
 
 class BillingContext(object):
     """
