@@ -14,10 +14,10 @@ class SimpleEvent(object):
         self.rollup = rollup # indicates that this is rollup rum of previous invoicings for the account, and should not be output anywhere except on the invoice itself
 
     def __repr__(self):
-        return u"SimpleEvent(%s, %s, %s, %f, %s, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id, self.ledger_year)
+        return "SimpleEvent(%s, %s, %s, %f, %s, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id, self.ledger_year)
 
     def __unicode__(self):
-        return u"SimpleEvent(%s, %s, %s, %f, %s, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id, self.ledger_year)
+        return "SimpleEvent(%s, %s, %s, %f, %s, %s)" % (self.date, self.account_id, self.item, self.amount, self.ledger_account_id, self.ledger_year)
 
     @staticmethod
     def generate_from_csv(rows):
@@ -53,7 +53,7 @@ class SimpleEvent(object):
                    row[2].startswith("Loppusaldo 2013"):
                     rollup = True
                     ledger_account_id = None
-                elif row[5].startswith(u"käsin") or len(row) < 8:
+                elif row[5].startswith("käsin") or len(row) < 8:
                     ledger_account_id = None
                 else:
                     ledger_account_id = int(row[7])
@@ -62,7 +62,7 @@ class SimpleEvent(object):
                 if ledger_account_id and row[6]:
                     ledger_year = row[6]
                 yield SimpleEvent(date, str(row[1]).strip(), row[2], amount, ledger_account_id, ledger_year, rollup)
-            except Exception, e:
+            except Exception as e:
                 raise ValueError("Error parsing CSV row %s" %row, e)
 
     @staticmethod

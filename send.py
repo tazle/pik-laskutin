@@ -80,7 +80,7 @@ def main():
         
                 recipient_addr = read_recipient_file(email_file, recipient_id)
         
-                print >> sys.stderr, "Sending", recipient_id, recipient_addr
+                print("Sending", recipient_id, recipient_addr, file=sys.stderr)
                 if recipient_addr:
                     msg = make_msg(conf["sender_address"], recipient_addr, title, body)
                     while True:
@@ -89,31 +89,31 @@ def main():
                             #send_v2(conn, conf, recipient_addr, msg.as_string())
                             # TBD: check if conn is connected
                             conn.sendmail(conf["sender_address"], recipient_addr, msg.as_string())
-                            print >> sys.stderr, "Sent", recipient_id, recipient_addr
+                            print("Sent", recipient_id, recipient_addr, file=sys.stderr)
                             break # No need to retry
-                        except smtplib.SMTPRecipientsRefused, e:
-                            error_code = e.recipients.values()[0][0]
+                        except smtplib.SMTPRecipientsRefused as e:
+                            error_code = list(e.recipients.values())[0][0]
                             if error_code == 501:
-                                print >> sys.stderr, "Invalid recipient, not retrying", recipient_id, recipient_addr, e
+                                print("Invalid recipient, not retrying", recipient_id, recipient_addr, e, file=sys.stderr)
                                 break # Break retry loop
                             elif error_code == 451:
-                                print >> sys.stderr, "Throttled, retrying later", recipient_id, recipient_addr, e
+                                print("Throttled, retrying later", recipient_id, recipient_addr, e, file=sys.stderr)
                             else:
-                                print >> sys.stderr, "Unknown error, not retrying", recipient_id, recipient_addr, e
+                                print("Unknown error, not retrying", recipient_id, recipient_addr, e, file=sys.stderr)
                                 break # Break retry loop
-                        except Exception, e:
-                            print >> sys.stderr, "Unknown exception type, not retrying", recipient_id, recipient_addr, e
+                        except Exception as e:
+                            print("Unknown exception type, not retrying", recipient_id, recipient_addr, e, file=sys.stderr)
                             break # Break retry loop
                         time.sleep(60)
                 else:
-                    print >> sys.stderr, "No e-mail address for", recipient_id
+                    print("No e-mail address for", recipient_id, file=sys.stderr)
                    
         # End SMTP connection
         conn.quit()
-        print "SMTP connection closed"
+        print("SMTP connection closed")
         
     else:
-        print "Usage: send.py conf-file recipient-id"
+        print("Usage: send.py conf-file recipient-id")
     
 
 if __name__ == '__main__':

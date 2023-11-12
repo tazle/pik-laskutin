@@ -38,10 +38,10 @@ class SimpleHansaTransaction(object):
             else:
                 return ("%.2f" %amount).replace(".", ",")
         for row in self.rows:
-            TXN = u"%d\t%d\t%s\t%s\t%s\t%s" %(self.txn_id, self.year, self.entry_date, self.txn_title, self.txn_date, self.txn_ref)
-            ROW = u"\t%d\t\t%s\t\t\t%s\t%s\t\t\t\t\t" %(row.account_no, row.row_title, cur(row.debit), cur(row.credit))
+            TXN = "%d\t%d\t%s\t%s\t%s\t%s" %(self.txn_id, self.year, self.entry_date, self.txn_title, self.txn_date, self.txn_ref)
+            ROW = "\t%d\t\t%s\t\t\t%s\t%s\t\t\t\t\t" %(row.account_no, row.row_title, cur(row.debit), cur(row.credit))
             out.append(TXN + ROW)
-        return u"\r\n".join(out) + "\r\n"
+        return "\r\n".join(out) + "\r\n"
 
 class SimpleHansaRow(object):
     """

@@ -64,10 +64,10 @@ class InvoiceLine(object):
         return "%s: %f <- %s" %(self.account_id, self.price, self.item)
 
     def __repr__(self):
-        return unicode(self)
+        return str(self)
 
     def __unicode__(self):
-        return u"%s: %f <- %s" %(self.account_id, self.price, self.item)
+        return "%s: %f <- %s" %(self.account_id, self.price, self.item)
 
     def to_csvrow(self):
         """
@@ -114,7 +114,7 @@ class BillingContext(object):
 
     def to_json(self):
         result = collections.defaultdict(lambda: {})
-        for k, v in self.account_contexts.items():
+        for k, v in list(self.account_contexts.items()):
             account_id, variable_id = k
             result[account_id][variable_id] = v
         return result
@@ -122,7 +122,7 @@ class BillingContext(object):
     @staticmethod
     def from_json(json_dict):
         result = BillingContext()
-        for account_id, account_vars in json_dict.items():
-            for var_name, value in account_vars.items():
+        for account_id, account_vars in list(json_dict.items()):
+            for var_name, value in list(account_vars.items()):
                 result.set(account_id, var_name, value)
         return result

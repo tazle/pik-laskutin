@@ -9,12 +9,12 @@ def findrecord(records, maintype, subtype):
 
 def ordify(d):
     result = {}
-    for k,v in d.iteritems():
+    for k,v in d.items():
         result[ord(k)] = ord(v)
     return result
 
-debanktable = ordify({u'[':u'Ä', u'\\':u'Ö', u']':u'Å',
-                    u'{':u'ä', u'|':u'ö'})
+debanktable = ordify({'[':'Ä', '\\':'Ö', ']':'Å',
+                    '{':'ä', '|':'ö'})
 
 
 def debank(str):
@@ -276,10 +276,10 @@ if __name__ == '__main__':
 
     if 'raw' in sys.argv:
         for txn in transactions(sys.stdin):
-            print txn.iban
-            print " ", txn.mainrecord
+            print(txn.iban)
+            print(" ", txn.mainrecord)
             for extra in txn.extrarecords:
-                print "  ", extra
+                print("  ", extra)
         sys.exit(1)
 
     if 'pikcsv' in sys.argv:
