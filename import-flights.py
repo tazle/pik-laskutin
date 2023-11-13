@@ -5,4 +5,4 @@ import sys
 reader = csv.reader(sys.stdin)
 
 for flight in Flight.generate_from_csv(reader):
-    print flight
+    print(flight)

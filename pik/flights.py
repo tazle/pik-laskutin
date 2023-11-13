@@ -30,10 +30,10 @@ class Flight(object):
         return "Flight(" + ", ".join([self.date.isoformat(), self.aircraft, self.account_id]) + ")"
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
+        return str(self).encode("utf-8")
 
     def __repr__(self):
-        return unicode(self).encode("utf-8")
+        return str(self).encode("utf-8")
 
     @staticmethod
     def generate_from_csv(rows):
@@ -54,7 +54,7 @@ class Flight(object):
                 except ValueError:
                     continue # header row
             try:
-                date = dt.date(*map(int, row[1].split("-")))
+                date = dt.date(*list(map(int, row[1].split("-"))))
                 #person_count = int(row[5])
                 #n_landings = int(row[11])
                 duration = int(row[13])
@@ -66,8 +66,8 @@ class Flight(object):
                     yield Flight(row[0], date, str(row[2]), row[8], row[9], row[12], duration, row[14], row[15], bool(row[16]))
                 else:
                     raise ValueError(row)
-            except Exception, e:
-                print >> sys.stderr, "Unable to parse line %s" %row
+            except Exception as e:
+                print("Unable to parse line %s" %row, file=sys.stderr)
                 raise
 
 def _flight_has_different_tz(locations):

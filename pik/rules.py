@@ -18,7 +18,7 @@ class BaseRule(object):
     allow_multiple_ledger_accounts = False
 
 class DebugRule(BaseRule):
-    def __init__(self, inner_rule, debug_filter=lambda event, result: bool(result), debug_func=lambda ev, result: sys.stdout.write(unicode(ev) + " " + unicode(result) + "\n")):
+    def __init__(self, inner_rule, debug_filter=lambda event, result: bool(result), debug_func=lambda ev, result: sys.stdout.write(str(ev) + " " + str(result) + "\n")):
         self.inner_rule = inner_rule
         self.debug_filter = debug_filter
         self.debug_func = debug_func
@@ -62,7 +62,7 @@ class SinceDateFilter(object):
     def __call__(self, event):
         try:
             val = self.ctx.get(event.account_id, self.variable_id)
-            limit = dt.date(*map(int, val.split("-")))
+            limit = dt.date(*list(map(int, val.split("-"))))
             return limit <= event.date
         except Exception:
             return False

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from pik import nda
 from collections import defaultdict
-import unicodecsv as csv
 
 def by_account(txn_stream):
     result = defaultdict(lambda: [])
@@ -21,22 +20,22 @@ def to_csv(fobj, account_iban, txns):
 def main():
     import sys
     if len(sys.argv) < 2:
-        print >> sys.stderr, "Usage: nda2csv.py <fname_pattern>"
-        print >> sys.stderr, ""
-        print >> sys.stderr, "Outputs CSV files in augmented Nordea CSV format based in input Nordea NDA transactions read from stdin"
-        print >> sys.stderr, "Each CSV is written into its own file"
-        print >> sys.stderr, ""
-        print >> sys.stderr, "Arguments:"
-        print >> sys.stderr, "  fname_pattern: Output filename pattern, where %s will be replaced by account IBAN number"
-        print >> sys.stderr, ""
-        print >> sys.stderr, "Example: nda2csv.py < 2016.nda '2016_%s.csv'"
-        print >> sys.stderr, ""
+        print("Usage: nda2csv.py <fname_pattern>", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Outputs CSV files in augmented Nordea CSV format based in input Nordea NDA transactions read from stdin", file=sys.stderr)
+        print("Each CSV is written into its own file", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Arguments:", file=sys.stderr)
+        print("  fname_pattern: Output filename pattern, where %s will be replaced by account IBAN number", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Example: nda2csv.py < 2016.nda '2016_%s.csv'", file=sys.stderr)
+        print("", file=sys.stderr)
         sys.exit(1)
     fname_pattern = sys.argv[1]
     
     # map from account id to list of transactions ordered by time
     account_txns = by_account(nda.transactions(sys.stdin))
-    for account, txns in account_txns.iteritems():
+    for account, txns in account_txns.items():
         fname = fname_pattern % account
         with open(fname, 'wb') as f:
             to_csv(f, account, txns)
