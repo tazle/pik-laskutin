@@ -18,8 +18,8 @@ debanktable = ordify({'[':'Ä', '\\':'Ö', ']':'Å',
 
 
 def debank(str):
-    u = str.decode('latin-1')
-    return u.translate(debanktable)
+    # u = str.decode('latin-1')
+    return str.translate(debanktable)
 
 class Transaction(object):
     def __init__(self, metarecord, mainrecord, extrarecords=[], receipt_txns=[]):

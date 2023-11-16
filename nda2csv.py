@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from pik import nda
 from collections import defaultdict
+import csv
 
 def by_account(txn_stream):
     result = defaultdict(lambda: [])
@@ -37,7 +38,7 @@ def main():
     account_txns = by_account(nda.transactions(sys.stdin))
     for account, txns in account_txns.items():
         fname = fname_pattern % account
-        with open(fname, 'wb') as f:
+        with open(fname, 'w') as f:
             to_csv(f, account, txns)
 
 
