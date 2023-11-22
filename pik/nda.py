@@ -228,7 +228,10 @@ def transactions(lines):
             # First yield buffered complex transaction, then the transaction that indicated its end
             yield complex_txn(txn_buf)
             txn_buf = []
-            yield txn
+            if txn.receipt == 'E':
+                txn_buf.append(txn)
+            else:
+                yield txn
         elif txn.receipt == 'E':
             # This transaction is followed by receipt transactions
             if txn_buf:
