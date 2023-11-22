@@ -117,18 +117,18 @@ T10188000001130506258883E248871305061305061305062730Palvelumaksu                
     @property
     def ledger_date(self):
         datestr = self.str[1+2+3+6+18:1+2+3+6+18+6]
-        try:
+        if datestr == "000000":
+            return None
+        else:
             return dt.datetime.strptime(datestr, "%y%m%d").date()
-        except:
-            raise Exception("No ledger date in", self.str)
 
     @property
     def value_date(self):
         datestr = self.str[1+2+3+6+30:1+2+3+6+30+6]
-        try:
+        if datestr == "000000":
+            return None
+        else:
             return dt.datetime.strptime(datestr, "%y%m%d").date()
-        except:
-            raise Exception("No value date in", self.str)
 
     @property
     def payment_date(self):
